@@ -516,34 +516,100 @@
       });
 
       // chart labels use company names
-      const labels = results.map((r, i) => `Pick ${7+i} — ${r.company}`);
-      const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
-      const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
+      // ===== CHART (manager names back + ticker on the bar) =====
 
-      const ctx = document.getElementById("chart").getContext("2d");
-      const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: "rgba(255,255,255,.75)" } },
-          y: { grid: { color: "rgba(255,255,255,.07)" }, ticks: { color: "rgba(255,255,255,.75)", callback: v => v + "%" } }
-        }
-      };
+// Multi-line labels (Chart.js supports arrays for multi-line ticks)
+const labels = results.map((r, i) => ([
+  `Pick ${7+i}`,
+  r.manager,
+  r.company
+]));
 
-      if (!chart){
-        chart = new Chart(ctx, {
-          type: "bar",
-          data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 10 }] },
-          options
-        });
-      } else {
-        chart.data.labels = labels;
-        chart.data.datasets[0].data = values;
-        chart.data.datasets[0].backgroundColor = colors;
-        chart.update();
+// Values + colors
+const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
+const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
+
+// Simple plugin to draw ticker on each bar
+const barTickerLabelsPlugin = {
+  id: "barTickerLabels",
+  afterDatasetsDraw(chart, args, pluginOptions) {
+    const { ctx } = chart;
+    const meta = chart.getDatasetMeta(0);
+    const dataset = chart.data.datasets[0];
+
+    ctx.save();
+    ctx.font = "700 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillStyle = "rgba(255,255,255,.92)";
+    ctx.textAlign = "center";
+
+    meta.data.forEach((bar, index) => {
+      const r = results[index];
+      const ticker = (r.ticker || "").replace(".AX", "").replace("ASX:", "");
+
+      if (!ticker) return;
+
+      // Position label slightly above bar for positive, slightly below for negative
+      const val = dataset.data[index] || 0;
+      const x = bar.x;
+      const y = val >= 0 ? (bar.y - 8) : (bar.y + 18);
+
+      ctx.fillText(ticker, x, y);
+    });
+
+    ctx.restore();
+  }
+};
+
+const ctx = document.getElementById("chart").getContext("2d");
+const options = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    // register our plugin here
+    barTickerLabels: {}
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: {
+        color: "rgba(255,255,255,.75)",
+        maxRotation: 0,
+        minRotation: 0,
+        autoSkip: false
+      }
+    },
+    y: {
+      grid: { color: "rgba(255,255,255,.07)" },
+      ticks: {
+        color: "rgba(255,255,255,.75)",
+        callback: v => v + "%"
       }
     }
+  }
+};
+
+if (!chart) {
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 10
+      }]
+    },
+    options,
+    plugins: [barTickerLabelsPlugin]
+  });
+} else {
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = values;
+  chart.data.datasets[0].backgroundColor = colors;
+  chart.update();
+}
+
 
     // ====== MAIN UPDATE ======
     async function update(){
