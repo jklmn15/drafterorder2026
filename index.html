@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AFL Draft — Market Allocation</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #002b5c, #001633);
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin-top: 25px;
+      font-size: 34px;
+      letter-spacing: 2px;
+    }
+
+    #status {
+      margin: 10px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    canvas {
+      max-width: 1100px;
+      margin: 40px auto;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 14px;
+      opacity: 0.6;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🏉 AFL Draft Order — The Market Decides</h1>
+<div id="status">Checking market status...</div>
+
+<canvas id="chart"></canvas>
+
+<footer>ASX Hours 10:00–16:00 (Sydney) • Updates every 30 minutes</footer>
+
+<script>
+
+const stocks = [
+  { manager: "Jeremy", ticker: "CSL.AX" },
+  { manager: "Callum", ticker: "BHP.AX" },
+  { manager: "Darrell", ticker: "WBC.AX" },
+  { manager: "Damian", ticker: "WES.AX" },
+  { manager: "Chris", ticker: "CBA.AX" },
+  { manager: "Ryan", ticker: "RIO.AX" },
+  { manager: "James", ticker: "MQG.AX" },
+  { manager: "Tom", ticker: "NAB.AX" }
+];
+
+const chartCtx = document.getElementById("chart").getContext("2d");
+let chart;
+
+// Detect ASX open/closed (Sydney time)
+function isMarketOpen() {
+  const now = new Date();
+  const sydneyTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "Australia/Sydney" })
+  );
+
+  const hours = sydneyTime.getHours();
+  const minutes = sydneyTime.getMinutes();
+  const totalMinutes = hours * 60 + minutes;
+
+  const open = 10 * 60;   // 10:00
+  const close = 16 * 60;  // 16:00
+
+  return totalMinutes >= open && totalMinutes <= close;
+}
+
+// Fetch stock % change via Yahoo Finance + CORS proxy
+async function fetchStock(ticker) {
+  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(
+    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ticker}`
+  )}`;
+
+  const response = await fetch(url);
+  const data = await response.json();
+  return data.quoteResponse.result[0].regularMarketChangePercent;
+}
+
+async function loadData() {
+
+  const marketOpen = isMarketOpen();
+
+  document.getElementById("status").innerText =
+    marketOpen ? "🟢 Market OPEN" : "🔴 Market CLOSED";
+
+  const results = await Promise.all(
+    stocks.map(async (stock) => {
+      const change = await fetchStock(stock.ticker);
+      return {
+        manager: stock.manager,
+        percent: change
+      };
+    })
+  );
+
+  // Sort by % change (highest first)
+  results.sort((a, b) => b.percent - a.percent);
+
+  // Assign Draft Picks 7–14
+  const labels = results.map((r, i) => {
+    const draftPick = 7 + i;
+    return `Pick ${draftPick} — ${r.manager}`;
+  });
+
+  const values = results.map(r => r.percent);
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(chartCtx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "% Change",
+        data: values,
+        backgroundColor: values.map(v => v >= 0 ? "#00ff88" : "#ff4444")
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value + "%";
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+loadData();
+setInterval(loadData, 1800000); // 30 minutes
+
+</script>
+
+</body>
+</html>
