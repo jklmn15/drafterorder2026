@@ -104,10 +104,7 @@
       white-space: nowrap;
     }
 
-    .mini{
-      color: var(--muted);
-      font-size: .92rem;
-    }
+    .mini{ color: var(--muted); font-size: .92rem; }
 
     .divider{
       height: 1px;
@@ -115,10 +112,7 @@
       margin: 12px 0;
     }
 
-    .chart-wrap{
-      position: relative;
-      height: 360px;
-    }
+    .chart-wrap{ position: relative; height: 360px; }
 
     .table thead th{
       color: rgba(255,255,255,.8);
@@ -171,17 +165,7 @@
       100%{ background-position: -200% 0; }
     }
 
-    .toast-container{
-      position: fixed;
-      bottom: 18px;
-      right: 18px;
-      z-index: 1080;
-    }
-
-    .foot{
-      color: var(--muted);
-      font-size: .92rem;
-    }
+    .foot{ color: var(--muted); font-size: .92rem; }
 
     .logo{
       width: 22px;
@@ -346,7 +330,7 @@
     // ====== CONFIG ======
     const REFRESH_MS = 10 * 60 * 1000; // 10 minutes
 
-    // Add company + logo here
+    // Mapping lives here: managers + companies + tickers + logos
     const stocks = [
       { manager: "Jeremy", company: "Commonwealth Bank", ticker: "CBA.AX", logo: "https://logo.clearbit.com/commbank.com.au" },
       { manager: "Callum", company: "BHP",               ticker: "BHP.AX", logo: "https://logo.clearbit.com/bhp.com" },
@@ -515,101 +499,63 @@
         tbody.appendChild(row);
       });
 
-      // chart labels use company names
-      // ===== CHART (manager names back + ticker on the bar) =====
+      // ===== CHART (stable, no plugins) =====
+      // Put manager names back + include ticker as extra line
+      const labels = results.map((r, i) => ([
+        `Pick ${7+i}`,
+        r.manager,
+        r.company,
+        r.ticker.replace(".AX","")
+      ]));
 
-// Multi-line labels (Chart.js supports arrays for multi-line ticks)
-const labels = results.map((r, i) => ([
-  `Pick ${7+i}`,
-  r.manager,
-  r.company
-]));
+      const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
+      const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
 
-// Values + colors
-const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
-const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
+      const ctx = document.getElementById("chart").getContext("2d");
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: "rgba(255,255,255,.80)",
+              maxRotation: 0,
+              minRotation: 0,
+              autoSkip: false
+            }
+          },
+          y: {
+            grid: { color: "rgba(255,255,255,.07)" },
+            ticks: {
+              color: "rgba(255,255,255,.80)",
+              callback: v => v + "%"
+            }
+          }
+        }
+      };
 
-// Simple plugin to draw ticker on each bar
-const barTickerLabelsPlugin = {
-  id: "barTickerLabels",
-  afterDatasetsDraw(chart, args, pluginOptions) {
-    const { ctx } = chart;
-    const meta = chart.getDatasetMeta(0);
-    const dataset = chart.data.datasets[0];
-
-    ctx.save();
-    ctx.font = "700 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillStyle = "rgba(255,255,255,.92)";
-    ctx.textAlign = "center";
-
-    meta.data.forEach((bar, index) => {
-      const r = results[index];
-      const ticker = (r.ticker || "").replace(".AX", "").replace("ASX:", "");
-
-      if (!ticker) return;
-
-      // Position label slightly above bar for positive, slightly below for negative
-      const val = dataset.data[index] || 0;
-      const x = bar.x;
-      const y = val >= 0 ? (bar.y - 8) : (bar.y + 18);
-
-      ctx.fillText(ticker, x, y);
-    });
-
-    ctx.restore();
-  }
-};
-
-const ctx = document.getElementById("chart").getContext("2d");
-const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    // register our plugin here
-    barTickerLabels: {}
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: {
-        color: "rgba(255,255,255,.75)",
-        maxRotation: 0,
-        minRotation: 0,
-        autoSkip: false
-      }
-    },
-    y: {
-      grid: { color: "rgba(255,255,255,.07)" },
-      ticks: {
-        color: "rgba(255,255,255,.75)",
-        callback: v => v + "%"
+      if (!chart){
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              data: values,
+              backgroundColor: colors,
+              borderRadius: 12
+            }]
+          },
+          options
+        });
+      } else {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = values;
+        chart.data.datasets[0].backgroundColor = colors;
+        chart.update();
       }
     }
-  }
-};
-
-if (!chart) {
-  chart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: colors,
-        borderRadius: 10
-      }]
-    },
-    options,
-    plugins: [barTickerLabelsPlugin]
-  });
-} else {
-  chart.data.labels = labels;
-  chart.data.datasets[0].data = values;
-  chart.data.datasets[0].backgroundColor = colors;
-  chart.update();
-}
-
 
     // ====== MAIN UPDATE ======
     async function update(){
