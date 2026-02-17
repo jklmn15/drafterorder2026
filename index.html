@@ -348,362 +348,284 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // === CONFIG ===
-    const REFRESH_MS = 10 * 60 * 1000; // 10 minutes
+  const REFRESH_MS = 10 * 60 * 1000; // 10 minutes
 
-    const stocks = [
-      { manager: "Jeremy", ticker: "CSL.AX" },
-      { manager: "Callum", ticker: "BHP.AX" },
-      { manager: "Darrell", ticker: "WBC.AX" },
-      { manager: "Damian", ticker: "WES.AX" },
-      { manager: "Chris", ticker: "CBA.AX" },
-      { manager: "Ryan", ticker: "RIO.AX" },
-      { manager: "James", ticker: "MQG.AX" },
-      { manager: "Tom", ticker: "NAB.AX" }
+  const stocks = [
+    { manager: "Jeremy", ticker: "CSL.AX" },
+    { manager: "Callum", ticker: "BHP.AX" },
+    { manager: "Darrell", ticker: "WBC.AX" },
+    { manager: "Damian", ticker: "WES.AX" },
+    { manager: "Chris", ticker: "CBA.AX" },
+    { manager: "Ryan", ticker: "RIO.AX" },
+    { manager: "James", ticker: "MQG.AX" },
+    { manager: "Tom", ticker: "NAB.AX" }
+  ];
+
+  let chart;
+  let locked = false;
+
+  const LOCK_DATE_KEY = "draftMarketLockedDateSydney";
+  const FINAL_DATA_KEY = "draftMarketFinalResultsSydney"; // stores { date: "YYYY-MM-DD", results: [...] }
+
+  // --- Sydney time helpers ---
+  function getSydneyDateObj(){
+    const now = new Date();
+    return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
+  }
+  function sydneyYMD(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  }
+  function minutesSinceMidnightSydney(){
+    const t = getSydneyDateObj();
+    return t.getHours() * 60 + t.getMinutes();
+  }
+  function isMarketOpenSydney(){
+    const m = minutesSinceMidnightSydney();
+    return m >= 600 && m < 960; // 10:00–16:00
+  }
+  function isAfterCloseSydney(){
+    return minutesSinceMidnightSydney() >= 960; // 16:00+
+  }
+
+  // --- UI helpers (minimal, keep your existing UI markup) ---
+  function updateMarketUI(){
+    const open = isMarketOpenSydney();
+    const pill = document.getElementById("marketPill");
+    const dot = document.getElementById("pulseDot");
+    const txt = document.getElementById("marketText");
+    const banner = document.getElementById("finalBanner");
+
+    if (locked){
+      txt.textContent = "Market closed • Locked";
+      dot.style.background = "var(--bad)";
+      dot.style.animation = "none";
+      pill.style.background = "rgba(255,77,90,.10)";
+      pill.style.borderColor = "rgba(255,77,90,.25)";
+      banner.style.display = "block";
+      return;
+    }
+
+    banner.style.display = "none";
+
+    if (open){
+      txt.textContent = "Market OPEN";
+      dot.style.background = "var(--good)";
+      dot.style.animation = "";
+      pill.style.background = "rgba(44,255,154,.08)";
+      pill.style.borderColor = "rgba(44,255,154,.20)";
+    } else {
+      txt.textContent = "Market CLOSED";
+      dot.style.background = "var(--bad)";
+      dot.style.animation = "none";
+      pill.style.background = "rgba(255,77,90,.08)";
+      pill.style.borderColor = "rgba(255,77,90,.20)";
+    }
+  }
+
+  function setLastUpdated(){
+    const el = document.getElementById("lastUpdated");
+    el.textContent = new Date().toLocaleString("en-AU", { timeZone: "Australia/Sydney" });
+  }
+
+  // --- Fetch with proxy fallback ---
+  async function fetchWithFallback(yahooUrl){
+    const proxies = [
+      (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+      (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`
     ];
 
-    // === STATE ===
-    let chart;
-    let locked = false;
-    let lastUpdateAt = null;
-    let nextUpdateAt = null;
-
-    // Persist lock date per browser so it doesn't "forget" on refresh the same day.
-    const LOCK_KEY = "draftMarketLockedDateSydney";
-
-    // === HELPERS: Sydney time ===
-    function getSydneyDateObj(){
-      const now = new Date();
-      return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
-    }
-    function sydneyYMD(d){
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const day = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${day}`;
-    }
-    function minutesSinceMidnightSydney(){
-      const t = getSydneyDateObj();
-      return t.getHours() * 60 + t.getMinutes();
-    }
-    function isMarketOpenSydney(){
-      const m = minutesSinceMidnightSydney();
-      return m >= 600 && m < 960; // 10:00–16:00
-    }
-    function isAfterCloseSydney(){
-      return minutesSinceMidnightSydney() >= 960; // 16:00+
-    }
-    function isBeforeOpenSydney(){
-      return minutesSinceMidnightSydney() < 600;
-    }
-
-    function updateMarketPill(){
-      const open = isMarketOpenSydney();
-      const pill = document.getElementById("marketPill");
-      const dot = document.getElementById("pulseDot");
-      const txt = document.getElementById("marketText");
-
-      if (locked){
-        txt.textContent = "Market closed • Locked";
-        dot.style.background = "var(--bad)";
-        dot.style.animation = "none";
-        pill.style.background = "rgba(255,77,90,.10)";
-        pill.style.borderColor = "rgba(255,77,90,.25)";
-        return;
-      }
-
-      if (open){
-        txt.textContent = "Market OPEN";
-        dot.style.background = "var(--good)";
-        dot.style.animation = "";
-        pill.style.background = "rgba(44,255,154,.08)";
-        pill.style.borderColor = "rgba(44,255,154,.20)";
-      } else {
-        txt.textContent = "Market CLOSED";
-        dot.style.background = "var(--bad)";
-        dot.style.animation = "none";
-        pill.style.background = "rgba(255,77,90,.08)";
-        pill.style.borderColor = "rgba(255,77,90,.20)";
+    let lastErr;
+    for (const p of proxies){
+      try{
+        const res = await fetch(p(yahooUrl), { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch (e){
+        lastErr = e;
       }
     }
+    throw lastErr || new Error("Failed to fetch");
+  }
 
-    function formatSydneyTime(d){
-      return d.toLocaleString("en-AU", {
-        timeZone: "Australia/Sydney",
-        weekday: "short",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+  async function fetchAllStocks(){
+    const symbols = stocks.map(s => s.ticker).join(",");
+    const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
+    const data = await fetchWithFallback(yahooUrl);
+
+    const map = new Map();
+    for (const item of (data.quoteResponse?.result || [])){
+      map.set(item.symbol, item.regularMarketChangePercent);
     }
+    return map;
+  }
 
-    function showToast(message){
-      const el = document.getElementById("toast");
-      document.getElementById("toastBody").textContent = message;
-      const toast = bootstrap.Toast.getOrCreateInstance(el, { delay: 2600 });
-      toast.show();
-    }
+  // --- Render (table + chart) ---
+  function colorForIndex(i, v){
+    if (i === 0) return "#FFD700";
+    if (i === 1) return "#C0C0C0";
+    if (i === 2) return "#CD7F32";
+    return v >= 0 ? "#2cff9a" : "#ff4d5a";
+  }
 
-    function setMetaTimes(){
-      const now = new Date();
-      lastUpdateAt = now;
-      nextUpdateAt = new Date(now.getTime() + REFRESH_MS);
+  function render(results, isFinal){
+    // table
+    document.getElementById("tableLoading").style.display = "none";
+    document.getElementById("tableWrap").style.display = "block";
 
-      document.getElementById("lastUpdated").textContent =
-        lastUpdateAt.toLocaleString("en-AU", { timeZone: "Australia/Sydney" });
+    const tbody = document.getElementById("ladderBody");
+    tbody.innerHTML = "";
 
-      document.getElementById("nextUpdate").textContent =
-        nextUpdateAt.toLocaleString("en-AU", { timeZone: "Australia/Sydney", hour:"2-digit", minute:"2-digit" });
-    }
+    results.forEach((r, i) => {
+      const pick = 7 + i;
+      const pct = Number.isFinite(r.percent) ? r.percent : null;
 
-    function updateCountdown(){
-      const t = getSydneyDateObj();
-      const m = minutesSinceMidnightSydney();
+      const row = document.createElement("tr");
+      if (isFinal) row.classList.add("table-active");
 
-      let targetMinutes;
-      let label;
-
-      if (locked){
-        document.getElementById("countdown").textContent = "Locked";
-        return;
-      }
-
-      if (isMarketOpenSydney()){
-        targetMinutes = 960; // close
-        label = "to close";
-      } else if (isBeforeOpenSydney()){
-        targetMinutes = 600; // open
-        label = "to open";
-      } else {
-        // after close but not locked? (rare, we lock ASAP)
-        targetMinutes = 960;
-        label = "to lock";
-      }
-
-      const diffMin = Math.max(0, targetMinutes - m);
-      const hh = Math.floor(diffMin / 60);
-      const mm = diffMin % 60;
-
-      document.getElementById("countdown").textContent =
-        `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")} ${label}`;
-    }
-
-    // === DATA FETCH (ONE REQUEST) ===
-    async function fetchAllStocks(){
-      const symbols = stocks.map(s => s.ticker).join(",");
-      const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
-      const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
-
-      const res = await fetch(proxied, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch quotes");
-      const data = await res.json();
-
-      const map = new Map();
-      for (const item of (data.quoteResponse?.result || [])){
-        map.set(item.symbol, item.regularMarketChangePercent);
-      }
-      return map;
-    }
-
-    function medalForIndex(i){
-      if (i === 0) return `<span class="medal" title="Pick 7 (Gold)"><i class="bi bi-trophy-fill" style="color:var(--gold)"></i></span>`;
-      if (i === 1) return `<span class="medal" title="Pick 8 (Silver)"><i class="bi bi-award-fill" style="color:var(--silver)"></i></span>`;
-      if (i === 2) return `<span class="medal" title="Pick 9 (Bronze)"><i class="bi bi-award-fill" style="color:var(--bronze)"></i></span>`;
-      return `<span class="medal" style="opacity:.55" title="—"><i class="bi bi-dot"></i></span>`;
-    }
-
-    function colorForIndex(i, v){
-      if (i === 0) return getComputedStyle(document.documentElement).getPropertyValue('--gold').trim();
-      if (i === 1) return getComputedStyle(document.documentElement).getPropertyValue('--silver').trim();
-      if (i === 2) return getComputedStyle(document.documentElement).getPropertyValue('--bronze').trim();
-      return (v >= 0)
-        ? getComputedStyle(document.documentElement).getPropertyValue('--good').trim()
-        : getComputedStyle(document.documentElement).getPropertyValue('--bad').trim();
-    }
-
-    function render(results, isFinal){
-      // Table
-      const tbody = document.getElementById("ladderBody");
-      tbody.innerHTML = "";
-
-      results.forEach((r, i) => {
-        const pick = 7 + i;
-        const pct = Number.isFinite(r.percent) ? r.percent : null;
-
-        const pctBadge = pct === null
-          ? `<span class="badge rounded-pill text-bg-secondary">N/A</span>`
-          : `<span class="badge rounded-pill" style="background:${pct>=0 ? 'rgba(44,255,154,.12)' : 'rgba(255,77,90,.12)'}; border:1px solid ${pct>=0 ? 'rgba(44,255,154,.25)' : 'rgba(255,77,90,.25)'};">
-              ${pct.toFixed(2)}%
-            </span>`;
-
-        const row = document.createElement("tr");
-        row.className = isFinal ? "table-active" : "";
-        row.innerHTML = `
-          <td>
-            <span class="rank-chip">
-              ${medalForIndex(i)}
-              #${i + 1}
-            </span>
-          </td>
-          <td><span class="pick-chip">Pick ${pick}</span></td>
-          <td class="fw-semibold">${r.manager}</td>
-          <td class="text-end">${pctBadge}</td>
-        `;
-        tbody.appendChild(row);
-      });
-
-      // Chart
-      const labels = results.map((r, i) => `Pick ${7+i} — ${r.manager}`);
-      const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
-      const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
-
-      const ctx = document.getElementById("chart").getContext("2d");
-
-      const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (c) => `${c.raw.toFixed(2)}%`
-            }
+      row.innerHTML = `
+        <td><span class="rank-chip">#${i + 1}</span></td>
+        <td><span class="pick-chip">Pick ${pick}</span></td>
+        <td class="fw-semibold">${r.manager}</td>
+        <td class="text-end">
+          ${
+            pct === null
+              ? `<span class="badge rounded-pill text-bg-secondary">N/A</span>`
+              : `<span class="badge rounded-pill" style="background:${pct>=0?'rgba(44,255,154,.12)':'rgba(255,77,90,.12)'}; border:1px solid ${pct>=0?'rgba(44,255,154,.25)':'rgba(255,77,90,.25)'};">
+                  ${pct.toFixed(2)}%
+                </span>`
           }
-        },
-        scales: {
-          x: {
-            ticks: { color: "rgba(255,255,255,.75)" },
-            grid: { display: false }
-          },
-          y: {
-            ticks: {
-              color: "rgba(255,255,255,.75)",
-              callback: (v) => `${v}%`
-            },
-            grid: { color: "rgba(255,255,255,.07)" }
-          }
-        }
-      };
-
-      if (!chart){
-        chart = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [{
-              data: values,
-              backgroundColor: colors,
-              borderColor: "rgba(255,255,255,.10)",
-              borderWidth: 1,
-              borderRadius: 10
-            }]
-          },
-          options: chartOptions
-        });
-      } else {
-        chart.data.labels = labels;
-        chart.data.datasets[0].data = values;
-        chart.data.datasets[0].backgroundColor = colors;
-        chart.update();
-      }
-
-      // Loading UI
-      document.getElementById("tableLoading").style.display = "none";
-      document.getElementById("tableWrap").style.display = "block";
-    }
-
-    function tryAutoUnlockIfNewDay(){
-      // If locked in this browser, unlock automatically on a different Sydney date.
-      const nowSydney = getSydneyDateObj();
-      const today = sydneyYMD(nowSydney);
-      const lockedDate = localStorage.getItem(LOCK_KEY);
-
-      if (locked && lockedDate && lockedDate !== today){
-        locked = false;
-        localStorage.removeItem(LOCK_KEY);
-        document.getElementById("finalBanner").style.display = "none";
-        showToast("New trading day detected — reset unlocked.");
-      }
-    }
-
-    function lockForToday(){
-      const today = sydneyYMD(getSydneyDateObj());
-      localStorage.setItem(LOCK_KEY, today);
-      locked = true;
-      document.getElementById("finalBanner").style.display = "block";
-      updateMarketPill();
-    }
-
-    function hydrateLockState(){
-      const today = sydneyYMD(getSydneyDateObj());
-      const lockedDate = localStorage.getItem(LOCK_KEY);
-      if (lockedDate === today){
-        locked = true;
-        document.getElementById("finalBanner").style.display = "block";
-      } else {
-        locked = false;
-        localStorage.removeItem(LOCK_KEY);
-      }
-      updateMarketPill();
-    }
-
-    async function update(){
-      tryAutoUnlockIfNewDay();
-      updateMarketPill();
-      updateCountdown();
-
-      // If after close, we do ONE final pull, render, lock.
-      const afterClose = isAfterCloseSydney();
-
-      if (locked) {
-        // Still keep UI countdown fresh
-        updateCountdown();
-        return;
-      }
-
-      const percentMap = await fetchAllStocks();
-
-      const results = stocks.map(s => ({
-        manager: s.manager,
-        percent: percentMap.get(s.ticker)
-      }));
-
-      results.sort((a, b) => (b.percent ?? -999) - (a.percent ?? -999));
-
-      render(results, afterClose);
-
-      setMetaTimes();
-      updateMarketPill();
-      updateCountdown();
-
-      if (afterClose){
-        lockForToday();
-        showToast("Final results locked at market close.");
-      }
-    }
-
-    function scheduleMeta(){
-      setMetaTimes();
-      setInterval(() => {
-        if (!nextUpdateAt) return;
-        const diff = Math.max(0, nextUpdateAt.getTime() - Date.now());
-        const mins = Math.ceil(diff / 60000);
-        // keep "next update" feeling alive
-        if (!locked) document.getElementById("nextUpdate").textContent = `${mins} min`;
-      }, 15000);
-    }
-
-    // Force refresh button
-    document.getElementById("forceRefreshBtn").addEventListener("click", async () => {
-      showToast("Refreshing now…");
-      await update();
+        </td>
+      `;
+      tbody.appendChild(row);
     });
 
-    // Init
+    // chart
+    const labels = results.map((r, i) => `Pick ${7+i} — ${r.manager}`);
+    const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
+    const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
+
+    const ctx = document.getElementById("chart").getContext("2d");
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "rgba(255,255,255,.75)" } },
+        y: { grid: { color: "rgba(255,255,255,.07)" }, ticks: { color: "rgba(255,255,255,.75)", callback: v => v + "%" } }
+      }
+    };
+
+    if (!chart){
+      chart = new Chart(ctx, {
+        type: "bar",
+        data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 10 }] },
+        options
+      });
+    } else {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = values;
+      chart.data.datasets[0].backgroundColor = colors;
+      chart.update();
+    }
+  }
+
+  // --- Persistence: lock + final results cache ---
+  function saveFinalResults(todaySydney, results){
+    localStorage.setItem(FINAL_DATA_KEY, JSON.stringify({ date: todaySydney, results }));
+    localStorage.setItem(LOCK_DATE_KEY, todaySydney);
+  }
+
+  function loadFinalResults(todaySydney){
+    const raw = localStorage.getItem(FINAL_DATA_KEY);
+    if (!raw) return null;
+    try{
+      const parsed = JSON.parse(raw);
+      if (parsed?.date === todaySydney && Array.isArray(parsed.results)) return parsed.results;
+    } catch {}
+    return null;
+  }
+
+  function hydrateLockState(){
+    const today = sydneyYMD(getSydneyDateObj());
+    const lockedDate = localStorage.getItem(LOCK_DATE_KEY);
+
+    // lock only applies for that Sydney date
+    locked = (lockedDate === today);
+
+    // If a new day, clear old lock & cached data
+    if (!locked){
+      localStorage.removeItem(LOCK_DATE_KEY);
+      const cached = localStorage.getItem(FINAL_DATA_KEY);
+      if (cached){
+        try{
+          const parsed = JSON.parse(cached);
+          if (parsed?.date !== today) localStorage.removeItem(FINAL_DATA_KEY);
+        } catch {
+          localStorage.removeItem(FINAL_DATA_KEY);
+        }
+      }
+    }
+  }
+
+  // --- Main update loop ---
+  async function update(){
     hydrateLockState();
-    scheduleMeta();
-    update();
-    setInterval(update, REFRESH_MS);
-    setInterval(updateCountdown, 1000 * 20); // keep countdown fresh
-  </script>
+    updateMarketUI();
+
+    const today = sydneyYMD(getSydneyDateObj());
+    const afterClose = isAfterCloseSydney();
+
+    // If locked, try to show cached finals immediately
+    if (locked){
+      const cached = loadFinalResults(today);
+      if (cached){
+        render(cached, true);
+        return;
+      }
+      // If locked but no cache (first-ever view after close), do ONE fetch to build cache:
+      try{
+        const map = await fetchAllStocks();
+        const results = stocks.map(s => ({ manager: s.manager, percent: map.get(s.ticker) }));
+        results.sort((a,b) => (b.percent ?? -999) - (a.percent ?? -999));
+        saveFinalResults(today, results);
+        render(results, true);
+        setLastUpdated();
+      } catch (e){
+        // keep UI visible; table will remain loading if nothing fetched
+        console.error(e);
+      }
+      return;
+    }
+
+    // Not locked: fetch and render live
+    try{
+      const map = await fetchAllStocks();
+      const results = stocks.map(s => ({ manager: s.manager, percent: map.get(s.ticker) }));
+      results.sort((a,b) => (b.percent ?? -999) - (a.percent ?? -999));
+
+      render(results, afterClose);
+      setLastUpdated();
+
+      // If after close, save + lock
+      if (afterClose){
+        saveFinalResults(today, results);
+        locked = true;
+        updateMarketUI();
+      }
+    } catch (e){
+      console.error(e);
+    }
+  }
+
+  document.getElementById("forceRefreshBtn").addEventListener("click", update);
+
+  // init
+  update();
+  setInterval(update, REFRESH_MS);
+</script>
+
 </body>
 </html>
