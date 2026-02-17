@@ -31,190 +31,190 @@ jobs:
           TICKERS: "CSL.AX,BHP.AX,WBC.AX,WES.AX,CBA.AX,RIO.AX,MQG.AX,NAB.AX"
         run: |
           node <<'NODE'
-const fs = require("fs");
+          const fs = require("fs");
 
-const CSV_URL = process.env.CSV_URL;
-const TICKERS = (process.env.TICKERS || "").split(",").map(s => s.trim()).filter(Boolean);
-
-// ===== Sydney time helpers =====
-function getSydneyNow() {
-  const now = new Date();
-  return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
-}
-function ymd(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const day = String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-}
-function hhmm(d){
-  const h = String(d.getHours()).padStart(2,"0");
-  const m = String(d.getMinutes()).padStart(2,"0");
-  return `${h}:${m}`;
-}
-function minutesSinceMidnight(d){
-  return d.getHours()*60 + d.getMinutes();
-}
-
-const sydneyNow = getSydneyNow();
-const today = ymd(sydneyNow);
-const minutes = minutesSinceMidnight(sydneyNow);
-
-// Lock at 16:05 Sydney
-const LOCK_MINUTE = 16*60 + 5;
-const shouldLock = minutes >= LOCK_MINUTE;
-
-// If already locked for today with real data, skip
-let existing = null;
-try { existing = JSON.parse(fs.readFileSync("data.json","utf8")); } catch {}
-const existingHasData =
-  existing &&
-  existing.dateSydney === today &&
-  Array.isArray(existing.quotes) &&
-  existing.quotes.some(q => q && q.percentDay !== null);
-
-if (existing && existing.locked === true && existing.dateSydney === today && existingHasData) {
-  console.log("Already locked for today with data. Skipping update.");
-  process.exit(0);
-}
-
-// ===== CSV parsing that handles tabs/commas =====
-// Your sample looks tab-separated. Published CSV is usually comma-separated,
-// but we'll support BOTH by detecting delimiter from the header row.
-function splitLine(line, delim){
-  // simple CSV-safe split (published CSV from Sheets is safe for our use case)
-  // handles quoted fields with commas
-  const out = [];
-  let cur = "";
-  let inQuotes = false;
-  for (let i=0;i<line.length;i++){
-    const c = line[i];
-    const n = line[i+1];
-    if (c === '"'){
-      if (inQuotes && n === '"'){ cur += '"'; i++; }
-      else inQuotes = !inQuotes;
-    } else if (c === delim && !inQuotes){
-      out.push(cur); cur = "";
-    } else {
-      cur += c;
-    }
-  }
-  out.push(cur);
-  return out;
-}
-
-function detectDelimiter(headerLine){
-  // If it contains tabs, use tab, else comma
-  if (headerLine.includes("\t")) return "\t";
-  return ",";
-}
-
-function parseTable(text){
-  const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-  if (lines.length < 2) throw new Error("CSV is empty");
-
-  const delim = detectDelimiter(lines[0]);
-  const headers = splitLine(lines[0], delim).map(h => h.trim());
-
-  const rows = [];
-  for (let i=1;i<lines.length;i++){
-    rows.push(splitLine(lines[i], delim));
-  }
-  return { headers, rows };
-}
-
-function headerIndex(headers, name){
-  const idx = headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
-  return idx;
-}
-
-function toNumberMaybe(x){
-  if (x === null || x === undefined) return null;
-  const s = String(x).trim();
-  if (!s) return null;
-  const cleaned = s.replace("%","").trim();
-  const n = Number(cleaned);
-  return Number.isFinite(n) ? n : null;
-}
-
-// Convert "ASX:CBA" -> "CBA.AX"
-function normalizeStockCode(code){
-  const s = String(code || "").trim();
-  const m = s.match(/^ASX:([A-Z0-9]+)$/i);
-  if (m) return `${m[1].toUpperCase()}.AX`;
-  // If it already looks like CBA.AX, keep it
-  if (/^[A-Z0-9]+\.AX$/i.test(s)) return s.toUpperCase();
-  return s;
-}
-
-async function fetchCSV(){
-  const url = CSV_URL + (CSV_URL.includes("?") ? "&" : "?") + "ts=" + Date.now();
-  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (GitHub Actions)" }});
-  if (!res.ok) throw new Error("CSV fetch failed HTTP " + res.status);
-  return await res.text();
-}
-
-async function main(){
-  const csvText = await fetchCSV();
-  const { headers, rows } = parseTable(csvText);
-
-  // Your columns:
-  // 2025 Rank, Coach, Company, Stock Code, % Change, Rank
-  const stockCodeIdx = headerIndex(headers, "Stock Code");
-  const pctIdx = headerIndex(headers, "% Change");
-
-  if (stockCodeIdx === -1) throw new Error(`Couldn't find "Stock Code" column. Headers: ${headers.join(" | ")}`);
-  if (pctIdx === -1) throw new Error(`Couldn't find "% Change" column. Headers: ${headers.join(" | ")}`);
-
-  // Build map: "CBA.AX" -> -0.14
-  const symbolToPct = new Map();
-
-  for (const row of rows){
-    const rawCode = row[stockCodeIdx];
-    const norm = normalizeStockCode(rawCode);
-    const pct = toNumberMaybe(row[pctIdx]);
-
-    if (norm && pct !== null){
-      symbolToPct.set(norm, pct);
-    }
-  }
-
-  // Build output in the order of TICKERS
-  const quotes = TICKERS.map(sym => ({
-    symbol: sym,
-    percentDay: symbolToPct.has(sym) ? symbolToPct.get(sym) : null,
-    price: null,
-    prevClose: null,
-    timeEpoch: null
-  }));
-
-  const hasAnyData = quotes.some(q => q.percentDay !== null);
-  if (!hasAnyData){
-    const seen = Array.from(symbolToPct.keys()).slice(0, 50);
-    throw new Error(`No matches found. Expected: ${TICKERS.join(", ")}. Saw: ${seen.join(", ")}`);
-  }
-
-  // Avoid locking junk if too incomplete
-  const filled = quotes.filter(q => q.percentDay !== null).length;
-  const completeEnough = filled >= Math.max(1, Math.floor(TICKERS.length * 0.75));
-  const locked = (shouldLock && completeEnough);
-
-  const out = {
-    dateSydney: today,
-    lastUpdatedSydney: `${today} ${hhmm(sydneyNow)}`,
-    locked,
-    quotes
-  };
-
-  fs.writeFileSync("data.json", JSON.stringify(out, null, 2));
-  console.log("Wrote data.json", out.lastUpdatedSydney, "locked:", out.locked, `filled=${filled}/${TICKERS.length}`);
-}
-
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
-NODE
+          const CSV_URL = process.env.CSV_URL;
+          const TICKERS = (process.env.TICKERS || "").split(",").map(s => s.trim()).filter(Boolean);
+          
+          // ===== Sydney time helpers =====
+          function getSydneyNow() {
+            const now = new Date();
+            return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
+          }
+          function ymd(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,"0");
+            const day = String(d.getDate()).padStart(2,"0");
+            return `${y}-${m}-${day}`;
+          }
+          function hhmm(d){
+            const h = String(d.getHours()).padStart(2,"0");
+            const m = String(d.getMinutes()).padStart(2,"0");
+            return `${h}:${m}`;
+          }
+          function minutesSinceMidnight(d){
+            return d.getHours()*60 + d.getMinutes();
+          }
+          
+          const sydneyNow = getSydneyNow();
+          const today = ymd(sydneyNow);
+          const minutes = minutesSinceMidnight(sydneyNow);
+          
+          // Lock at 16:05 Sydney
+          const LOCK_MINUTE = 16*60 + 5;
+          const shouldLock = minutes >= LOCK_MINUTE;
+          
+          // If already locked for today with real data, skip
+          let existing = null;
+          try { existing = JSON.parse(fs.readFileSync("data.json","utf8")); } catch {}
+          const existingHasData =
+            existing &&
+            existing.dateSydney === today &&
+            Array.isArray(existing.quotes) &&
+            existing.quotes.some(q => q && q.percentDay !== null);
+          
+          if (existing && existing.locked === true && existing.dateSydney === today && existingHasData) {
+            console.log("Already locked for today with data. Skipping update.");
+            process.exit(0);
+          }
+          
+          // ===== CSV parsing that handles tabs/commas =====
+          // Your sample looks tab-separated. Published CSV is usually comma-separated,
+          // but we'll support BOTH by detecting delimiter from the header row.
+          function splitLine(line, delim){
+            // simple CSV-safe split (published CSV from Sheets is safe for our use case)
+            // handles quoted fields with commas
+            const out = [];
+            let cur = "";
+            let inQuotes = false;
+            for (let i=0;i<line.length;i++){
+              const c = line[i];
+              const n = line[i+1];
+              if (c === '"'){
+                if (inQuotes && n === '"'){ cur += '"'; i++; }
+                else inQuotes = !inQuotes;
+              } else if (c === delim && !inQuotes){
+                out.push(cur); cur = "";
+              } else {
+                cur += c;
+              }
+            }
+            out.push(cur);
+            return out;
+          }
+          
+          function detectDelimiter(headerLine){
+            // If it contains tabs, use tab, else comma
+            if (headerLine.includes("\t")) return "\t";
+            return ",";
+          }
+          
+          function parseTable(text){
+            const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+            if (lines.length < 2) throw new Error("CSV is empty");
+          
+            const delim = detectDelimiter(lines[0]);
+            const headers = splitLine(lines[0], delim).map(h => h.trim());
+          
+            const rows = [];
+            for (let i=1;i<lines.length;i++){
+              rows.push(splitLine(lines[i], delim));
+            }
+            return { headers, rows };
+          }
+          
+          function headerIndex(headers, name){
+            const idx = headers.findIndex(h => h.trim().toLowerCase() === name.toLowerCase());
+            return idx;
+          }
+          
+          function toNumberMaybe(x){
+            if (x === null || x === undefined) return null;
+            const s = String(x).trim();
+            if (!s) return null;
+            const cleaned = s.replace("%","").trim();
+            const n = Number(cleaned);
+            return Number.isFinite(n) ? n : null;
+          }
+          
+          // Convert "ASX:CBA" -> "CBA.AX"
+          function normalizeStockCode(code){
+            const s = String(code || "").trim();
+            const m = s.match(/^ASX:([A-Z0-9]+)$/i);
+            if (m) return `${m[1].toUpperCase()}.AX`;
+            // If it already looks like CBA.AX, keep it
+            if (/^[A-Z0-9]+\.AX$/i.test(s)) return s.toUpperCase();
+            return s;
+          }
+          
+          async function fetchCSV(){
+            const url = CSV_URL + (CSV_URL.includes("?") ? "&" : "?") + "ts=" + Date.now();
+            const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (GitHub Actions)" }});
+            if (!res.ok) throw new Error("CSV fetch failed HTTP " + res.status);
+            return await res.text();
+          }
+          
+          async function main(){
+            const csvText = await fetchCSV();
+            const { headers, rows } = parseTable(csvText);
+          
+            // Your columns:
+            // 2025 Rank, Coach, Company, Stock Code, % Change, Rank
+            const stockCodeIdx = headerIndex(headers, "Stock Code");
+            const pctIdx = headerIndex(headers, "% Change");
+          
+            if (stockCodeIdx === -1) throw new Error(`Couldn't find "Stock Code" column. Headers: ${headers.join(" | ")}`);
+            if (pctIdx === -1) throw new Error(`Couldn't find "% Change" column. Headers: ${headers.join(" | ")}`);
+          
+            // Build map: "CBA.AX" -> -0.14
+            const symbolToPct = new Map();
+          
+            for (const row of rows){
+              const rawCode = row[stockCodeIdx];
+              const norm = normalizeStockCode(rawCode);
+              const pct = toNumberMaybe(row[pctIdx]);
+          
+              if (norm && pct !== null){
+                symbolToPct.set(norm, pct);
+              }
+            }
+          
+            // Build output in the order of TICKERS
+            const quotes = TICKERS.map(sym => ({
+              symbol: sym,
+              percentDay: symbolToPct.has(sym) ? symbolToPct.get(sym) : null,
+              price: null,
+              prevClose: null,
+              timeEpoch: null
+            }));
+          
+            const hasAnyData = quotes.some(q => q.percentDay !== null);
+            if (!hasAnyData){
+              const seen = Array.from(symbolToPct.keys()).slice(0, 50);
+              throw new Error(`No matches found. Expected: ${TICKERS.join(", ")}. Saw: ${seen.join(", ")}`);
+            }
+          
+            // Avoid locking junk if too incomplete
+            const filled = quotes.filter(q => q.percentDay !== null).length;
+            const completeEnough = filled >= Math.max(1, Math.floor(TICKERS.length * 0.75));
+            const locked = (shouldLock && completeEnough);
+          
+            const out = {
+              dateSydney: today,
+              lastUpdatedSydney: `${today} ${hhmm(sydneyNow)}`,
+              locked,
+              quotes
+            };
+          
+            fs.writeFileSync("data.json", JSON.stringify(out, null, 2));
+            console.log("Wrote data.json", out.lastUpdatedSydney, "locked:", out.locked, `filled=${filled}/${TICKERS.length}`);
+          }
+          
+          main().catch(err => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
 
 
       - name: Commit and push if changed
