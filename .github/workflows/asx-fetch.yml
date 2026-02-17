@@ -1,4 +1,4 @@
-name: Fetch ASX Draft Data
+name: Fetch ASX Draft Data (from Google Sheet)
 
 on:
   workflow_dispatch:
@@ -24,14 +24,17 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Fetch and write data.json
+      - name: Fetch CSV and write data.json
         env:
+          CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRYhwLaZvprnIRaCoGaqNuEgyHYqeUeXC6J4bG3wUhYWIy7e_gpFgvdqP15D1EqNw/pub?output=csv"
+          # These should match your front-end tickers
           TICKERS: "CSL.AX,BHP.AX,WBC.AX,WES.AX,CBA.AX,RIO.AX,MQG.AX,NAB.AX"
         run: |
           node <<'NODE'
           const fs = require("fs");
 
-          const tickers = process.env.TICKERS.split(",");
+          const CSV_URL = process.env.CSV_URL;
+          const TICKERS = (process.env.TICKERS || "").split(",").map(s => s.trim()).filter(Boolean);
 
           // ===== Sydney time helpers =====
           function getSydneyNow() {
@@ -53,89 +56,178 @@ jobs:
             return d.getHours()*60 + d.getMinutes();
           }
 
+          // ASX lock at 16:05 Sydney
           const sydneyNow = getSydneyNow();
-          const minutes = minutesSinceMidnight(sydneyNow);
-
-          // ASX regular hours: 10:00–16:00 Sydney
-          const open = 10*60;
-          const close = 16*60;
-
-          // Lock at 16:05 Sydney
-          const lockMinute = close + 5;
-          const isLocked = minutes >= lockMinute;
-
           const today = ymd(sydneyNow);
+          const minutes = minutesSinceMidnight(sydneyNow);
+          const LOCK_MINUTE = 16*60 + 5;
+          const shouldLock = minutes >= LOCK_MINUTE;
 
-          // Load existing data.json so we preserve today's locked snapshot
+          // If already locked for today with real data, skip
           let existing = null;
           try { existing = JSON.parse(fs.readFileSync("data.json","utf8")); } catch {}
-          if (existing && existing.locked === true && existing.dateSydney === today) {
-            console.log("Already locked for today. Skipping update.");
+          const existingHasData =
+            existing &&
+            existing.dateSydney === today &&
+            Array.isArray(existing.quotes) &&
+            existing.quotes.some(q => q && q.percentDay !== null);
+
+          if (existing && existing.locked === true && existing.dateSydney === today && existingHasData) {
+            console.log("Already locked for today with data. Skipping update.");
             process.exit(0);
           }
 
-          // ===== Fetch helpers =====
-          const yahooUrl = "https://query2.finance.yahoo.com/v7/finance/quote?symbols=" + encodeURIComponent(tickers.join(","));
-          const jinaUrl  = "https://r.jina.ai/http://" + yahooUrl.replace(/^https?:\/\//, "");
+          // ===== CSV parsing (handles quotes/commas) =====
+          function parseCSV(text){
+            const rows = [];
+            let row = [];
+            let field = "";
+            let inQuotes = false;
 
-          async function fetchJson(url) {
-            const res = await fetch(url, {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (GitHub Actions)",
-                "Accept": "application/json,text/plain,*/*",
-                "Referer": "https://finance.yahoo.com/"
+            for (let i = 0; i < text.length; i++){
+              const c = text[i];
+              const next = text[i+1];
+
+              if (c === '"' ) {
+                if (inQuotes && next === '"') { field += '"'; i++; }
+                else { inQuotes = !inQuotes; }
+              } else if (c === "," && !inQuotes) {
+                row.push(field); field = "";
+              } else if ((c === "\n" || c === "\r") && !inQuotes) {
+                if (c === "\r" && next === "\n") i++;
+                row.push(field); field = "";
+                // ignore totally empty trailing lines
+                if (row.length > 1 || (row.length === 1 && row[0].trim() !== "")) rows.push(row);
+                row = [];
+              } else {
+                field += c;
               }
-            });
-            const text = await res.text();
-            return { ok: res.ok, status: res.status, text };
+            }
+            // last field
+            if (field.length || row.length){
+              row.push(field);
+              if (row.length > 1 || (row.length === 1 && row[0].trim() !== "")) rows.push(row);
+            }
+            return rows;
           }
 
-          function parsePossiblyWrappedJson(text) {
-            // jina sometimes prepends text; find first "{"
-            const idx = text.indexOf("{");
-            if (idx === -1) throw new Error("No JSON object found in response");
-            return JSON.parse(text.slice(idx));
+          function normalizeHeader(h){
+            return String(h || "").trim().toLowerCase();
           }
 
-          async function getYahooQuoteResponse() {
-            // Try direct first
-            const direct = await fetchJson(yahooUrl);
-            if (direct.ok) {
-              return JSON.parse(direct.text);
-            }
-            console.log("Direct Yahoo failed:", direct.status);
+          function toNumberMaybe(x){
+            if (x === null || x === undefined) return null;
+            const s = String(x).trim();
+            if (!s) return null;
 
-            // Fallback via jina
-            const viaJina = await fetchJson(jinaUrl);
-            if (!viaJina.ok) {
-              throw new Error(`Both direct and jina fetch failed. Direct=${direct.status}, Jina=${viaJina.status}`);
+            // handle "1.23%", "+1.23", "-0.5"
+            const cleaned = s.replace(/[%]/g, "").replace(/[,+]/g, "").trim();
+            const n = Number(cleaned);
+            return Number.isFinite(n) ? n : null;
+          }
+
+          async function fetchCSV(){
+            const url = CSV_URL + (CSV_URL.includes("?") ? "&" : "?") + "ts=" + Date.now();
+            const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (GitHub Actions)" }});
+            if (!res.ok) throw new Error("CSV fetch failed HTTP " + res.status);
+            return await res.text();
+          }
+
+          function pickColumnIndex(headers, predicates){
+            for (let i = 0; i < headers.length; i++){
+              const h = normalizeHeader(headers[i]);
+              if (predicates.some(p => p(h))) return i;
             }
-            return parsePossiblyWrappedJson(viaJina.text);
+            return -1;
+          }
+
+          function extractQuotesFromTable(rows){
+            if (!rows || rows.length < 2) throw new Error("CSV appears empty");
+
+            const headers = rows[0];
+
+            // Try common header names
+            const symIdx = pickColumnIndex(headers, [
+              h => h === "symbol",
+              h => h === "ticker",
+              h => h.includes("symbol"),
+              h => h.includes("ticker"),
+              h => h.includes("code")
+            ]);
+
+            const pctIdx = pickColumnIndex(headers, [
+              h => h.includes("%"),
+              h => h.includes("percent"),
+              h => h.includes("change"),
+              h => h.includes("day"),
+              h => h.includes("daily")
+            ]);
+
+            // If no headers match, fallback: symbol is first column, pct is last column
+            const symbolCol = symIdx >= 0 ? symIdx : 0;
+            const pctCol = pctIdx >= 0 ? pctIdx : (headers.length - 1);
+
+            const map = new Map();
+
+            for (let r = 1; r < rows.length; r++){
+              const row = rows[r];
+              const symbol = (row[symbolCol] || "").trim();
+
+              // symbol sanity
+              if (!symbol) continue;
+
+              const pct = toNumberMaybe(row[pctCol]);
+
+              // Store
+              map.set(symbol, pct);
+            }
+
+            return map;
+          }
+
+          function buildOutputFromMap(symbolToPct){
+            // Build quotes in the order of TICKERS
+            const quotes = TICKERS.map(sym => ({
+              symbol: sym,
+              percentDay: symbolToPct.has(sym) ? symbolToPct.get(sym) : null,
+              price: null,
+              prevClose: null,
+              timeEpoch: null
+            }));
+
+            const hasAnyData = quotes.some(q => q.percentDay !== null);
+            if (!hasAnyData) {
+              // Give a helpful error showing what symbols we DID see
+              const seen = Array.from(symbolToPct.keys()).slice(0, 25);
+              throw new Error(
+                "No matching tickers found in CSV. Expected one of: " +
+                TICKERS.join(", ") +
+                ". Saw: " + seen.join(", ")
+              );
+            }
+
+            return {
+              dateSydney: today,
+              lastUpdatedSydney: `${today} ${hhmm(sydneyNow)}`,
+              locked: shouldLock,
+              quotes
+            };
           }
 
           async function main(){
-            const json = await getYahooQuoteResponse();
-            const result = json?.quoteResponse?.result || [];
+            const csvText = await fetchCSV();
+            const rows = parseCSV(csvText);
 
-            const quoteMap = new Map(result.map(r => [r.symbol, r]));
+            const symbolToPct = extractQuotesFromTable(rows);
+            const out = buildOutputFromMap(symbolToPct);
 
-            const quotes = tickers.map(sym => {
-              const q = quoteMap.get(sym);
-              return {
-                symbol: sym,
-                percentDay: q?.regularMarketChangePercent ?? null,
-                price: q?.regularMarketPrice ?? null,
-                prevClose: q?.regularMarketPreviousClose ?? null,
-                timeEpoch: q?.regularMarketTime ?? null
-              };
-            });
-
-            const out = {
-              dateSydney: today,
-              lastUpdatedSydney: `${today} ${hhmm(sydneyNow)}`,
-              locked: isLocked,
-              quotes
-            };
+            // If we are after lock time but data is incomplete, still write but don't lock
+            // (prevents locking junk)
+            const completeEnough = out.quotes.filter(q => q.percentDay !== null).length >= Math.max(1, Math.floor(TICKERS.length * 0.75));
+            if (out.locked && !completeEnough) {
+              console.log("After lock time but data incomplete — writing unlocked snapshot.");
+              out.locked = false;
+            }
 
             fs.writeFileSync("data.json", JSON.stringify(out, null, 2));
             console.log("Wrote data.json", out.lastUpdatedSydney, "locked:", out.locked);
