@@ -3,8 +3,7 @@ name: Fetch ASX Draft Data
 on:
   workflow_dispatch:
   schedule:
-    # Every 10 minutes (UTC). We'll compute Sydney status inside the script.
-    - cron: "*/10 * * * *"
+    - cron: "*/10 * * * *"   # every 10 minutes (UTC). Sydney logic handled in script.
 
 permissions:
   contents: write
@@ -34,7 +33,7 @@ jobs:
 
           const tickers = process.env.TICKERS.split(",");
 
-          // Sydney time helpers
+          // ===== Sydney time helpers =====
           function getSydneyNow() {
             const now = new Date();
             return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
@@ -61,42 +60,61 @@ jobs:
           const open = 10*60;
           const close = 16*60;
 
-          // We'll "lock" at 16:05 Sydney to ensure the close price is settled.
+          // Lock at 16:05 Sydney
           const lockMinute = close + 5;
-
           const isLocked = minutes >= lockMinute;
-
-          // Load existing data.json if present (to keep locked snapshot once locked)
-          let existing = null;
-          try {
-            existing = JSON.parse(fs.readFileSync("data.json","utf8"));
-          } catch {}
 
           const today = ymd(sydneyNow);
 
-          // If already locked for today, do nothing (keep the final snapshot)
+          // Load existing data.json so we preserve today's locked snapshot
+          let existing = null;
+          try { existing = JSON.parse(fs.readFileSync("data.json","utf8")); } catch {}
           if (existing && existing.locked === true && existing.dateSydney === today) {
             console.log("Already locked for today. Skipping update.");
             process.exit(0);
           }
 
-          // Fetch quotes from Yahoo Finance (server-side, no CORS issues)
-          const url = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=" + encodeURIComponent(tickers.join(","));
+          // ===== Fetch helpers =====
+          const yahooUrl = "https://query2.finance.yahoo.com/v7/finance/quote?symbols=" + encodeURIComponent(tickers.join(","));
+          const jinaUrl  = "https://r.jina.ai/http://" + yahooUrl.replace(/^https?:\/\//, "");
 
-          async function main(){
+          async function fetchJson(url) {
             const res = await fetch(url, {
               headers: {
                 "User-Agent": "Mozilla/5.0 (GitHub Actions)",
-                "Accept": "application/json"
+                "Accept": "application/json,text/plain,*/*",
+                "Referer": "https://finance.yahoo.com/"
               }
             });
+            const text = await res.text();
+            return { ok: res.ok, status: res.status, text };
+          }
 
-            if (!res.ok) {
-              console.error("Yahoo HTTP", res.status);
-              process.exit(1);
+          function parsePossiblyWrappedJson(text) {
+            // jina sometimes prepends text; find first "{"
+            const idx = text.indexOf("{");
+            if (idx === -1) throw new Error("No JSON object found in response");
+            return JSON.parse(text.slice(idx));
+          }
+
+          async function getYahooQuoteResponse() {
+            // Try direct first
+            const direct = await fetchJson(yahooUrl);
+            if (direct.ok) {
+              return JSON.parse(direct.text);
             }
+            console.log("Direct Yahoo failed:", direct.status);
 
-            const json = await res.json();
+            // Fallback via jina
+            const viaJina = await fetchJson(jinaUrl);
+            if (!viaJina.ok) {
+              throw new Error(`Both direct and jina fetch failed. Direct=${direct.status}, Jina=${viaJina.status}`);
+            }
+            return parsePossiblyWrappedJson(viaJina.text);
+          }
+
+          async function main(){
+            const json = await getYahooQuoteResponse();
             const result = json?.quoteResponse?.result || [];
 
             const quoteMap = new Map(result.map(r => [r.symbol, r]));
