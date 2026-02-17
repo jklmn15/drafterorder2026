@@ -27,9 +27,33 @@
       font-size: 18px;
     }
 
+    #lockedBanner {
+      display: none;
+      background: #c40000;
+      padding: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
     canvas {
       max-width: 1100px;
-      margin: 40px auto;
+      margin: 30px auto;
+    }
+
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 60%;
+      background: #001a3d;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #003366;
+    }
+
+    th {
+      background: #003366;
     }
 
     footer {
@@ -44,8 +68,21 @@
 
 <h1>🏉 AFL Draft Order — The Market Decides</h1>
 <div id="status">Checking market status...</div>
+<div id="lockedBanner">🚨 FINAL ORDER LOCKED 🚨</div>
 
 <canvas id="chart"></canvas>
+
+<table id="ladder">
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Draft Pick</th>
+      <th>Manager</th>
+      <th>% Change</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
 <footer>ASX Hours 10:00–16:00 (Sydney) • Updates every 30 minutes</footer>
 
@@ -64,30 +101,29 @@ const stocks = [
 
 const chartCtx = document.getElementById("chart").getContext("2d");
 let chart;
+let locked = false;
 
-// Detect ASX open/closed (Sydney time)
-function isMarketOpen() {
+function getSydneyTime() {
   const now = new Date();
-  const sydneyTime = new Date(
-    now.toLocaleString("en-US", { timeZone: "Australia/Sydney" })
-  );
-
-  const hours = sydneyTime.getHours();
-  const minutes = sydneyTime.getMinutes();
-  const totalMinutes = hours * 60 + minutes;
-
-  const open = 10 * 60;   // 10:00
-  const close = 16 * 60;  // 16:00
-
-  return totalMinutes >= open && totalMinutes <= close;
+  return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
 }
 
-// Fetch stock % change via Yahoo Finance + CORS proxy
+function isMarketOpen() {
+  const sydneyTime = getSydneyTime();
+  const totalMinutes = sydneyTime.getHours() * 60 + sydneyTime.getMinutes();
+  return totalMinutes >= 600 && totalMinutes < 960; // 10:00–16:00
+}
+
+function isMarketClosedAndLocked() {
+  const sydneyTime = getSydneyTime();
+  const totalMinutes = sydneyTime.getHours() * 60 + sydneyTime.getMinutes();
+  return totalMinutes >= 960; // After 4:00pm
+}
+
 async function fetchStock(ticker) {
   const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(
     `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ticker}`
   )}`;
-
   const response = await fetch(url);
   const data = await response.json();
   return data.quoteResponse.result[0].regularMarketChangePercent;
@@ -95,10 +131,16 @@ async function fetchStock(ticker) {
 
 async function loadData() {
 
-  const marketOpen = isMarketOpen();
+  if (locked) return;
 
-  document.getElementById("status").innerText =
-    marketOpen ? "🟢 Market OPEN" : "🔴 Market CLOSED";
+  if (isMarketClosedAndLocked()) {
+    locked = true;
+    document.getElementById("status").innerText = "🔴 Market CLOSED";
+    document.getElementById("lockedBanner").style.display = "block";
+  } else {
+    document.getElementById("status").innerText =
+      isMarketOpen() ? "🟢 Market OPEN" : "🔴 Market CLOSED";
+  }
 
   const results = await Promise.all(
     stocks.map(async (stock) => {
@@ -110,16 +152,35 @@ async function loadData() {
     })
   );
 
-  // Sort by % change (highest first)
   results.sort((a, b) => b.percent - a.percent);
 
-  // Assign Draft Picks 7–14
-  const labels = results.map((r, i) => {
-    const draftPick = 7 + i;
-    return `Pick ${draftPick} — ${r.manager}`;
-  });
+  const labels = [];
+  const values = [];
+  const colors = [];
 
-  const values = results.map(r => r.percent);
+  const tbody = document.querySelector("#ladder tbody");
+  tbody.innerHTML = "";
+
+  results.forEach((r, i) => {
+    const draftPick = 7 + i;
+    labels.push(`Pick ${draftPick} — ${r.manager}`);
+    values.push(r.percent);
+
+    if (i === 0) colors.push("#FFD700");       // Gold
+    else if (i === 1) colors.push("#C0C0C0");  // Silver
+    else if (i === 2) colors.push("#CD7F32");  // Bronze
+    else colors.push(r.percent >= 0 ? "#00ff88" : "#ff4444");
+
+    const row = `
+      <tr>
+        <td>#${i + 1}</td>
+        <td>${draftPick}</td>
+        <td>${r.manager}</td>
+        <td>${r.percent.toFixed(2)}%</td>
+      </tr>
+    `;
+    tbody.innerHTML += row;
+  });
 
   if (chart) chart.destroy();
 
@@ -128,22 +189,17 @@ async function loadData() {
     data: {
       labels: labels,
       datasets: [{
-        label: "% Change",
         data: values,
-        backgroundColor: values.map(v => v >= 0 ? "#00ff88" : "#ff4444")
+        backgroundColor: colors
       }]
     },
     options: {
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: function(value) {
-              return value + "%";
-            }
+            callback: value => value + "%"
           }
         }
       }
@@ -152,7 +208,7 @@ async function loadData() {
 }
 
 loadData();
-setInterval(loadData, 1800000); // 30 minutes
+setInterval(loadData, 1800000);
 
 </script>
 
