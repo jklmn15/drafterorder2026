@@ -43,7 +43,7 @@
     table {
       margin: 20px auto;
       border-collapse: collapse;
-      width: 60%;
+      width: 70%;
       background: #001a3d;
     }
 
@@ -54,6 +54,10 @@
 
     th {
       background: #003366;
+    }
+
+    .finalRow {
+      font-weight: bold;
     }
 
     footer {
@@ -68,7 +72,7 @@
 
 <h1>🏉 AFL Draft Order — The Market Decides</h1>
 <div id="status">Checking market status...</div>
-<div id="lockedBanner">🚨 FINAL ORDER LOCKED 🚨</div>
+<div id="lockedBanner">🚨 FINAL RESULTS LOCKED 🚨</div>
 
 <canvas id="chart"></canvas>
 
@@ -78,16 +82,15 @@
       <th>Rank</th>
       <th>Draft Pick</th>
       <th>Manager</th>
-      <th>% Change</th>
+      <th>% Change (Day)</th>
     </tr>
   </thead>
   <tbody></tbody>
 </table>
 
-<footer>ASX Hours 10:00–16:00 (Sydney) • Updates every 30 minutes</footer>
+<footer>ASX Hours 10:00–16:00 (Sydney) • Updates every 10 minutes</footer>
 
 <script>
-
 const stocks = [
   { manager: "Jeremy", ticker: "CSL.AX" },
   { manager: "Callum", ticker: "BHP.AX" },
@@ -107,53 +110,35 @@ function getSydneyTime() {
   const now = new Date();
   return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
 }
-
+function getTotalMinutes() {
+  const t = getSydneyTime();
+  return t.getHours() * 60 + t.getMinutes();
+}
 function isMarketOpen() {
-  const sydneyTime = getSydneyTime();
-  const totalMinutes = sydneyTime.getHours() * 60 + sydneyTime.getMinutes();
-  return totalMinutes >= 600 && totalMinutes < 960; // 10:00–16:00
+  const m = getTotalMinutes();
+  return m >= 600 && m < 960; // 10:00–16:00
+}
+function isAfterClose() {
+  return getTotalMinutes() >= 960; // after 16:00
 }
 
-function isMarketClosedAndLocked() {
-  const sydneyTime = getSydneyTime();
-  const totalMinutes = sydneyTime.getHours() * 60 + sydneyTime.getMinutes();
-  return totalMinutes >= 960; // After 4:00pm
-}
+// ONE request for all tickers
+async function fetchAllStocks() {
+  const symbols = stocks.map(s => s.ticker).join(",");
+  const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
+  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
 
-async function fetchStock(ticker) {
-  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ticker}`
-  )}`;
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.quoteResponse.result[0].regularMarketChangePercent;
-}
+  const res = await fetch(proxied);
+  const data = await res.json();
 
-async function loadData() {
-
-  if (locked) return;
-
-  if (isMarketClosedAndLocked()) {
-    locked = true;
-    document.getElementById("status").innerText = "🔴 Market CLOSED";
-    document.getElementById("lockedBanner").style.display = "block";
-  } else {
-    document.getElementById("status").innerText =
-      isMarketOpen() ? "🟢 Market OPEN" : "🔴 Market CLOSED";
+  const map = new Map();
+  for (const item of data.quoteResponse.result) {
+    map.set(item.symbol, item.regularMarketChangePercent);
   }
+  return map;
+}
 
-  const results = await Promise.all(
-    stocks.map(async (stock) => {
-      const change = await fetchStock(stock.ticker);
-      return {
-        manager: stock.manager,
-        percent: change
-      };
-    })
-  );
-
-  results.sort((a, b) => b.percent - a.percent);
-
+function render(results, isFinal=false) {
   const labels = [];
   const values = [];
   const colors = [];
@@ -163,20 +148,22 @@ async function loadData() {
 
   results.forEach((r, i) => {
     const draftPick = 7 + i;
+
     labels.push(`Pick ${draftPick} — ${r.manager}`);
     values.push(r.percent);
 
+    // medals for top 3 (Pick 7/8/9)
     if (i === 0) colors.push("#FFD700");       // Gold
     else if (i === 1) colors.push("#C0C0C0");  // Silver
     else if (i === 2) colors.push("#CD7F32");  // Bronze
     else colors.push(r.percent >= 0 ? "#00ff88" : "#ff4444");
 
     const row = `
-      <tr>
+      <tr class="${isFinal ? 'finalRow' : ''}">
         <td>#${i + 1}</td>
         <td>${draftPick}</td>
         <td>${r.manager}</td>
-        <td>${r.percent.toFixed(2)}%</td>
+        <td>${Number.isFinite(r.percent) ? r.percent.toFixed(2) + "%" : "N/A"}</td>
       </tr>
     `;
     tbody.innerHTML += row;
@@ -198,18 +185,46 @@ async function loadData() {
       scales: {
         y: {
           beginAtZero: true,
-          ticks: {
-            callback: value => value + "%"
-          }
+          ticks: { callback: value => value + "%" }
         }
       }
     }
   });
 }
 
-loadData();
-setInterval(loadData, 1800000);
+async function update() {
+  if (locked) return;
 
+  // status text
+  if (isAfterClose()) {
+    document.getElementById("status").innerText = "🔴 Market CLOSED";
+    document.getElementById("lockedBanner").style.display = "block";
+  } else {
+    document.getElementById("status").innerText = isMarketOpen() ? "🟢 Market OPEN" : "🔴 Market CLOSED";
+  }
+
+  // fetch data
+  const percentMap = await fetchAllStocks();
+
+  // build results (daily % change)
+  const results = stocks.map(s => ({
+    manager: s.manager,
+    percent: percentMap.get(s.ticker)
+  }));
+
+  // sort best->worst
+  results.sort((a, b) => (b.percent ?? -999) - (a.percent ?? -999));
+
+  // render
+  render(results, isAfterClose());
+
+  // lock after final render post-close
+  if (isAfterClose()) locked = true;
+}
+
+// initial + refresh every 10 minutes
+update();
+setInterval(update, 600000); // 10 minutes
 </script>
 
 </body>
