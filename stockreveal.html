@@ -119,14 +119,7 @@
       border-radius: var(--radius);
     }
 
-    /* Underlay content (always there) */
-    .under{
-      position: relative;
-      padding: 16px;
-    }
-    @media (min-width: 576px){
-      .under{ padding: 18px 20px; }
-    }
+
 
     /* Overlay: frosted glass that fades away on reveal */
     .overlay{
@@ -135,18 +128,21 @@
       border-radius: var(--radius);
       cursor: pointer;
       user-select: none;
-
-      /* The “opaque glass” look */
-      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,.10);
-
-      /* Decorative glow */
+    
+      /* MUCH more opaque */
+      background:
+        linear-gradient(160deg,
+          rgba(12,18,45,.96),
+          rgba(18,26,70,.94)
+        );
+    
+      border: 1px solid rgba(255,255,255,.12);
+    
       overflow: hidden;
       transition: opacity .45s ease, transform .45s ease;
       opacity: 1;
     }
+
 
     .overlay::before{
       content:"";
@@ -175,24 +171,32 @@
 
     /* Revealed state: overlay fades to (nearly) see-through */
     .tile.revealed .overlay{
-      opacity: 0.06;          /* keeps a hint of glass */
-      transform: scale(1.005);
-      pointer-events: none;   /* once revealed, clicks go through */
+      opacity: 0;
+      transform: scale(1.02);
+      pointer-events: none;
     }
+
 
     /* Optional: if you want it fully invisible on reveal, change to opacity: 0 */
     /* .tile.revealed .overlay{ opacity: 0; } */
 
     /* Make the under content feel like it "comes alive" when revealed */
     .under{
-      opacity: .92;
-      transition: opacity .35s ease, transform .35s ease;
-      transform: translateY(2px);
+      position: relative;
+      padding: 16px;
+      opacity: 0;
+      transition: opacity .45s ease, transform .45s ease;
+      transform: translateY(6px);
+    }
+    @media (min-width: 576px){
+      .under{ padding: 18px 20px; }
     }
     .tile.revealed .under{
       opacity: 1;
       transform: translateY(0);
     }
+
+
 
     .logoImg{
       width: 100%;
@@ -249,8 +253,6 @@
           <p class="hero-sub mb-0">
             These eight Australian heavyweight stocks were chosen by ChatGPT and then randomly allocated to the 8 coaches.
           </p>
-        </div>
-
         </div>
 
         <div class="d-flex gap-2 align-items-start">
