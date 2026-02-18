@@ -292,12 +292,13 @@
             <table class="table table-dark table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th style="width: 88px;">Rank</th>
+                  <th class="d-none d-sm-table-cell" style="width: 88px;">Rank</th>
                   <th style="width: 96px;">Pick</th>
                   <th>Coach + Stock</th>
                   <th class="text-end">% Day</th>
                 </tr>
               </thead>
+
               <tbody id="ladderBody"></tbody>
             </table>
           </div>
@@ -556,7 +557,7 @@
              </span>`;
 
         row.innerHTML = `
-          <td><span class="rank-chip">#${i + 1}</span></td>
+          <td class="d-none d-sm-table-cell"><span class="rank-chip">#${i + 1}</span></td>
           <td><span class="pick-chip">Pick ${pick}</span></td>
           <td>
             <div class="d-flex align-items-center gap-2">
@@ -569,6 +570,7 @@
           </td>
           <td class="text-end">${pctBadge}</td>
         `;
+
         tbody.appendChild(row);
       });
 
