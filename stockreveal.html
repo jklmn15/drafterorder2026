@@ -2,672 +2,445 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Coaches — Stock Reveal (Flip Tiles)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coaches — Stock Reveal</title>
 
-  <!-- Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- (Optional) Bootstrap JS (not required for this page, but handy) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
   <style>
     :root{
-      --bg0:#070b14;
-      --bg1:#0b1430;
-      --cardFront: rgba(255,255,255,.06);
-      --cardBack: rgba(255,255,255,.08);
-      --text:#eaf0ff;
-      --muted:#a7b4d8;
-      --line: rgba(255,255,255,.10);
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-      --radius: 18px;
-      --accent:#7aa2ff;
+      --bg0:#050816;
+      --bg1:#060b1f;
+      --card:#0b1330cc;
+      --stroke:rgba(255,255,255,.08);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65);
+      --accent:#45d4ff;
+      --accent2:#7c4dff;
+      --shadow: 0 10px 40px rgba(0,0,0,.35);
+      --radius: 20px;
     }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+
     body{
-      margin:0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
       background:
-        radial-gradient(1000px 650px at 12% 12%, #1a3a78 0%, rgba(26,58,120,0) 55%),
-        radial-gradient(950px 650px at 90% 25%, #3a1a78 0%, rgba(58,26,120,0) 56%),
-        linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 100%);
-      overflow-x:hidden;
+        radial-gradient(1200px 600px at 20% 0%, rgba(124,77,255,.25), transparent 55%),
+        radial-gradient(900px 500px at 85% 10%, rgba(69,212,255,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    .wrap{
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 22px 14px 56px;
-    }
-
-    header{
-      border: 1px solid rgba(255,255,255,.07);
-      background: rgba(10,18,35,.55);
+    .glass{
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 16px 16px 14px;
     }
-    h1{
-      margin:0;
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing:.2px;
+
+    .hero{
+      position: relative;
+      padding: 28px 0 8px;
     }
-    .sub{
-      margin: 8px 0 0;
+
+    .hero-badge{
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .45rem .75rem;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-    }
-    .sub strong{ color: rgba(234,240,255,.92); }
-
-    .row{
-      margin-top: 12px;
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      align-items:center;
-      justify-content: space-between;
-    }
-
-    .leftHint{
-      color: var(--muted);
-      font-size: 12px;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap: wrap;
-    }
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      border-bottom-color: rgba(255,255,255,.22);
-      padding: 2px 6px;
-      border-radius: 8px;
-      color: rgba(255,255,255,.85);
-      font-size: 11px;
-    }
-
-    .actions{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-    .btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
       font-weight: 700;
-      font-size: 12px;
-      cursor:pointer;
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-      user-select:none;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.20); background: rgba(255,255,255,.09); }
-    .btn:active{ transform: translateY(0px); }
-    .btn.primary{
-      border-color: rgba(122,162,255,.35);
-      background: rgba(122,162,255,.14);
-    }
-    .btn.primary:hover{
-      border-color: rgba(122,162,255,.55);
-      background: rgba(122,162,255,.20);
+      letter-spacing: .2px;
     }
 
-    /* Tiles stack full width */
-    .stack{
+    .hero-title{
+      font-weight: 900;
+      letter-spacing: -0.6px;
+      line-height: 1.05;
       margin-top: 14px;
-      display:flex;
-      flex-direction: column;
-      gap: 12px;
+      margin-bottom: 10px;
     }
 
-    /* 3D flip */
-    .tile{
-      width: 100%;
-      min-height: 118px;
-      perspective: 1200px;
+    .hero-sub{
+      color: var(--muted);
+      max-width: 75ch;
     }
-    .tile button{
-      all: unset;
-      display:block;
-      width:100%;
-      cursor:pointer;
+
+    .hero-highlight{
+      background: linear-gradient(90deg,var(--accent),var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .divider{ height: 1px; background: var(--stroke); margin: 12px 0; }
+
+    /* Flip Tiles */
+    .tile{
+      perspective: 1400px;
     }
 
     .flip{
       position: relative;
       width: 100%;
-      min-height: 118px;
       transform-style: preserve-3d;
       transition: transform .62s cubic-bezier(.2,.8,.2,1);
       border-radius: var(--radius);
-      box-shadow: 0 14px 46px rgba(0,0,0,.35);
-      outline: none;
+      min-height: 180px; /* taller base */
     }
-    .tile.is-flipped .flip{
-      transform: rotateX(180deg);
+
+    /* even taller on small screens for paragraphs */
+    @media (max-width: 576px){
+      .flip{ min-height: 240px; }
     }
+
+    .tile.is-flipped .flip{ transform: rotateY(180deg); }
 
     .face{
       position:absolute;
       inset:0;
       backface-visibility: hidden;
       border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,.09);
+      border: 1px solid var(--stroke);
       overflow:hidden;
     }
 
-    /* Front */
     .front{
-      background: linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.03) 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
     }
     .front::before{
       content:"";
       position:absolute;
-      inset:-60px;
+      inset:-70px;
       background:
-        radial-gradient(520px 260px at 20% 10%, rgba(122,162,255,.20), rgba(122,162,255,0) 60%),
-        radial-gradient(520px 280px at 90% 40%, rgba(170,122,255,.16), rgba(170,122,255,0) 58%);
+        radial-gradient(650px 320px at 20% 10%, rgba(124,77,255,.20), rgba(124,77,255,0) 60%),
+        radial-gradient(650px 320px at 90% 40%, rgba(69,212,255,.16), rgba(69,212,255,0) 60%);
       pointer-events:none;
     }
-    .frontInner{
-      position: relative;
-      padding: 16px 16px 14px;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 12px;
-      min-height: 118px;
-    }
-    .coachBlock{
-      min-width:0;
-      display:flex;
-      flex-direction: column;
-      gap:8px;
-    }
-    .coachName{
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .coachMeta{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .cta{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      color: rgba(234,240,255,.88);
-      font-weight: 800;
-    }
 
-    .rightBadge{
-      flex: 0 0 auto;
-      width: 46px; height: 46px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.16);
-      display:grid;
-      place-items:center;
-      font-weight: 900;
-      letter-spacing:.6px;
-    }
-
-    /* Back */
     .back{
-      transform: rotateX(180deg);
-      background: linear-gradient(180deg, rgba(255,255,255,.09) 0%, rgba(255,255,255,.04) 100%);
+      transform: rotateY(180deg);
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04));
     }
     .back::before{
       content:"";
       position:absolute;
       inset:-80px;
-      background:
-        radial-gradient(650px 340px at 50% 0%, rgba(255,255,255,.11), rgba(255,255,255,0) 60%);
+      background: radial-gradient(900px 380px at 50% 0%, rgba(255,255,255,.10), rgba(255,255,255,0) 60%);
       pointer-events:none;
     }
-    .backInner{
-      position: relative;
-      padding: 16px;
-      display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap: 14px;
-      min-height: 118px;
-      align-items: center;
-    }
-    @media (max-width: 680px){
-      .backInner{ grid-template-columns: 1fr; }
-    }
 
-    .revealTitle{
-      display:flex;
-      flex-direction: column;
-      gap: 10px;
-      min-width:0;
-    }
-    .companyLine{
-      display:flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width:0;
-    }
-    .companyName{
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .tickerRow{
-      display:flex;
-      gap:12px;
-      align-items: baseline;
-      flex-wrap: wrap;
-    }
-    .tickerBig{
-      font-size: 34px;
-      font-weight: 1000;
-      letter-spacing: 1px;
-      line-height: 1;
-    }
-    .smallMeta{
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap: wrap;
-    }
-    .joke{
-      margin: 4px 0 0;
-      color: rgba(234,240,255,.86);
-      font-size: 13px;
-      line-height: 1.35;
-    }
-
-    .logoBox{
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.14);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 14px;
-      min-height: 92px;
-      overflow:hidden;
-    }
-    .logo{
-      max-width: 240px;
-      max-height: 86px;
-      width:auto;
-      height:auto;
-      filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 10px 14px;
-    }
-    .logoFallback{
+    .tile-btn{
+      all: unset;
+      display:block;
       width:100%;
-      text-align:center;
-      padding: 16px 10px;
-      border-radius: 16px;
-      border:1px dashed rgba(255,255,255,.18);
-      background: rgba(0,0,0,.08);
+      cursor:pointer;
     }
-    .logoFallback .fbTicker{
-      font-weight: 1000;
-      font-size: 30px;
-      letter-spacing: 1px;
+    .tile-btn:focus-visible .flip{
+      outline: 2px solid rgba(69,212,255,.45);
+      outline-offset: 3px;
     }
-    .logoFallback .fbCompany{
-      margin-top: 6px;
-      color: rgba(255,255,255,.78);
+
+    .pill{
+      border-radius: 999px;
+      padding: .45rem .75rem;
       font-weight: 800;
-      font-size: 13px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .logoFallback .fbHint{
-      margin-top: 8px;
-      color: rgba(169,183,218,.95);
-      font-size: 12px;
-      font-weight: 700;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      white-space: nowrap;
+      color: rgba(255,255,255,.86);
     }
 
-    .footer{
-      margin-top: 14px;
-      text-align:center;
-      color: var(--muted);
-      font-size: 12px;
-      opacity: .95;
+    .coach-name{
+      font-weight: 900;
+      letter-spacing: -.2px;
     }
 
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      .flip{ transition:none; }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      letter-spacing: .8px;
     }
 
-    .sr{ position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
+    .logoImg{
+      width: 100%;
+      max-width: 260px;
+      max-height: 110px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: rgba(255,255,255,.92);
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 10px 28px rgba(0,0,0,.28);
+    }
+
+    /* Let the back face grow if paragraph is long */
+    .backContent{
+      min-height: 180px;
+    }
+    @media (max-width: 576px){
+      .backContent{ min-height: 240px; }
+    }
+
+    .joke{
+      color: rgba(255,255,255,.84);
+      line-height: 1.45;
+      margin: 0;
+      font-size: 0.98rem;
+    }
+
+    .small-muted{ color: var(--muted); }
+
+    /* Nice stacked spacing */
+    .stack-gap{ gap: 14px; }
+
+    /* Mobile badge tightening similar to your other page */
+    @media (max-width: 576px){
+      .hero-badge{
+        width: 100%;
+        justify-content: space-between;
+        gap: .5rem;
+        padding: .4rem .6rem;
+        font-size: .92rem;
+        line-height: 1.1;
+      }
+      .hero-badge i{ display:none; }
+      .hero-badge .badge-text{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 70%;
+      }
+    }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <header>
-      <h1>Coaches Market Allocation</h1>
-      <p class="sub">
-        Tap your name to flip your tile and reveal your randomly allocated ASX stock.<br/>
-        <strong>The Market Decides</strong>
-      </p>
 
-      <div class="row">
-        <div class="leftHint">
-          <span>Tiles stay revealed on this device.</span>
-          <span>Tip: press <span class="kbd">R</span> to reset.</span>
+<body>
+  <div class="container py-4">
+    <!-- HERO -->
+    <div class="hero">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+          <div class="hero-badge">
+            <i class="bi bi-stars"></i>
+            <span class="badge-text">ASX-powered reveal night</span>
+            <span class="small-muted">•</span>
+            <span>8 coaches</span>
+          </div>
+
+          <h1 class="hero-title display-6 mb-2">
+            🏉 Coaches Stock Reveal
+            <span class="hero-highlight d-block">The Market Decides</span>
+          </h1>
+
+          <p class="hero-sub mb-0">
+            Click your tile to reveal your randomly allocated stock. Tiles stay flipped on this device.
+          </p>
         </div>
-        <div class="actions">
-          <button class="btn" id="resetBtn" title="Clears saved reveals on this device">Reset reveals</button>
-          <button class="btn primary" id="revealAllBtn" title="Reveals everyone (saved locally)">Reveal all</button>
+
+        <div class="d-flex gap-2 align-items-start">
+          <button class="btn btn-outline-light btn-sm px-3 glass" id="resetBtn" type="button">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+          </button>
+          <button class="btn btn-outline-info btn-sm px-3 glass" id="revealAllBtn" type="button">
+            <i class="bi bi-eye me-1"></i> Reveal all
+          </button>
         </div>
       </div>
-    </header>
+    </div>
 
-    <main class="stack" id="stack" aria-label="Coach reveal tiles"></main>
+    <div class="divider"></div>
 
-    <div class="footer">Saved locally • No trades • Pure vibes</div>
+    <!-- TILES (stacked full width) -->
+    <div class="d-flex flex-column stack-gap" id="stack" aria-label="Coach reveal tiles"></div>
+
+    <div class="text-center mt-4 small-muted">
+      Logos load from <span class="mono">images/&lt;CODE&gt;.jpg</span> (you’ll supply the files).
+    </div>
   </div>
 
   <script>
-    /**
-     * LOGOS (important):
-     * - The most reliable approach is to save logo image files in your repo and reference them here.
-     *   Example structure:
-     *     /assets/logos/NAB.png
-     *     /assets/logos/RIO.png
-     *     ...
-     *
-     * - If you DO save them, set `logoMode` to "local" (default) and make sure the filenames match.
-     * - If you want to try remote logos, set logoMode to "clearbit" (may fail due to blockers/CSP).
-     */
-    const logoMode = "local"; // "local" or "clearbit"
-    const localLogoPath = (file) => `assets/logos/${file}`; // you can change folder
-    const clearbitLogo = (domain) => `https://logo.clearbit.com/${domain}?size=256&format=png`;
-
-    // --- Data in the exact order you requested ---
+    // ORDER EXACTLY AS REQUESTED (top to bottom)
     const tiles = [
       {
         coach: "Jeremy",
         company: "CSL",
-        ticker: "CSL",
+        code: "CSL",
         sector: "Biotech / Healthcare",
-        domain: "csl.com",
-        logoFile: "CSL.png",
-        joke: "CSL lives in labs, pipelines, and long-term gains. If your season starts shaky, just call it “R&amp;D”—then emerge in finals like a breakthrough therapy nobody saw coming."
+        joke: "CSL lives in labs, pipelines, and long-term gains. If your season starts shaky, just call it “R&D”—then emerge in finals like a breakthrough therapy nobody saw coming."
       },
       {
         coach: "Callum",
         company: "BHP",
-        ticker: "BHP",
+        code: "BHP",
         sector: "Mining",
-        domain: "bhp.com",
-        logoFile: "BHP.png",
-        joke: "BHP digs deep and moves mountains. If injuries hit, you’ll simply open a new pit, extract value from the bench, and somehow still ship a win by bulk carrier."
+        joke: "BHP digs deep and moves mountains. If injuries hit, you’ll simply open a new pit, extract value from the bench, and still ship a win by bulk carrier."
       },
       {
         coach: "Darrell",
         company: "Westpac",
-        ticker: "WBC",
+        code: "WBC",
         sector: "Banking",
-        domain: "westpac.com.au",
-        logoFile: "WBC.png",
         joke: "Westpac loves a steady margin and a calm press conference. Expect conservative selections, safe captains, and a season plan so risk-managed it needs three approvals just to trade a ruck."
       },
       {
         coach: "Damian",
         company: "Wesfarmers",
-        ticker: "WES",
+        code: "WES",
         sector: "Retail / Industrial",
-        domain: "wesfarmers.com.au",
-        logoFile: "WES.png",
         joke: "Wesfarmers owns half the aisle and still finds a new checkout lane. Your fate: diversified—when one line flops, another quietly carries you to the top four like a suspiciously effective loyalty program."
       },
       {
         coach: "Chris H",
         company: "CommBank",
-        ticker: "CBA",
+        code: "CBA",
         sector: "Banking",
-        domain: "commbank.com.au",
-        logoFile: "CBA.png",
         joke: "CommBank is the big boss of the ASX—comfortable, powerful, slightly smug. You’ll start favourites, project confidence, and if things go wrong you’ll simply raise the interest rate on your opponents’ hopes."
       },
       {
         coach: "James",
         company: "Macquarie",
-        ticker: "MQG",
+        code: "MQG",
         sector: "Investment Banking",
-        domain: "macquarie.com",
-        logoFile: "MQG.png",
         joke: "Macquarie turns spreadsheets into sorcery. Your season will feature bold, confusing trades that look illegal—until finals, when everyone realises you’ve engineered the ladder like a toll road."
       },
       {
         coach: "Tom",
         company: "NAB",
-        ticker: "NAB",
+        code: "NAB",
         sector: "Banking",
-        domain: "nab.com.au",
-        logoFile: "NAB.png",
-        joke: "NAB is dependable, well-capitalised, and allergic to chaos. Translation: you’ll bank points every week, never panic, and grind out wins so steady it should come with a repayment schedule."
+        joke: "NAB is dependable and allergic to chaos. Translation: you’ll bank points every week, never panic, and grind out wins so steady they should come with a repayment schedule."
       },
       {
         coach: "Ryan",
         company: "Rio Tinto",
-        ticker: "RIO",
+        code: "RIO",
         sector: "Mining",
-        domain: "riotinto.com",
-        logoFile: "RIO.png",
-        joke: "Rio Tinto runs global operations with ruthless efficiency. Expect you to mine undervalued rookies, export points at scale, and leave opponents staring into the abyss like they just checked commodity prices."
+        joke: "Rio runs global operations with ruthless efficiency. Expect you to mine undervalued rookies, export points at scale, and leave opponents staring into the abyss like they just checked commodity prices."
       }
     ];
 
-    // --- Persistence ---
-    const KEY = "coach_stock_flip_v2";
+    // Logo path: images/<CODE>.jpg  (you will supply)
+    const logoPath = (code) => `images/${code}.jpg`;
+
+    // Persistence
+    const KEY = "coach_stock_flip_bootstrap_v1";
     const getState = () => {
       try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; }
     };
     const setState = (obj) => localStorage.setItem(KEY, JSON.stringify(obj));
 
-    // --- Render ---
     const stack = document.getElementById("stack");
     const resetBtn = document.getElementById("resetBtn");
     const revealAllBtn = document.getElementById("revealAllBtn");
 
-    function initials(name){
-      return (name || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
-    }
-
-    function imgSrc(t){
-      if(logoMode === "clearbit") return clearbitLogo(t.domain);
-      return localLogoPath(t.logoFile);
-    }
+    const initials = (name) => (name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
 
     function render(){
       const state = getState();
       stack.innerHTML = "";
 
-      tiles.forEach((t, i) => {
-        const isFlipped = !!state[t.coach];
+      tiles.forEach((t, idx) => {
+        const flipped = !!state[t.coach];
 
-        const tile = document.createElement("section");
-        tile.className = "tile" + (isFlipped ? " is-flipped" : "");
-        tile.dataset.coach = t.coach;
+        const tile = document.createElement("div");
+        tile.className = "tile";
+
+        if(flipped) tile.classList.add("is-flipped");
 
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.setAttribute("aria-label", `${t.coach} reveal tile`);
-        btn.setAttribute("aria-pressed", isFlipped ? "true" : "false");
+        btn.className = "tile-btn";
+        btn.setAttribute("aria-label", `${t.coach} stock reveal tile`);
+        btn.setAttribute("aria-pressed", flipped ? "true" : "false");
 
         const flip = document.createElement("div");
-        flip.className = "flip";
-        flip.tabIndex = 0;
+        flip.className = "flip glass";
 
         // FRONT
         const front = document.createElement("div");
         front.className = "face front";
 
-        const frontInner = document.createElement("div");
-        frontInner.className = "frontInner";
+        front.innerHTML = `
+          <div class="h-100 d-flex align-items-center">
+            <div class="p-3 p-sm-4 w-100 d-flex align-items-center justify-content-between gap-3">
+              <div class="min-w-0">
+                <div class="coach-name h4 mb-2">${t.coach}</div>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                  <span class="pill">
+                    <i class="bi bi-hand-index-thumb me-1"></i>
+                    ${flipped ? `Revealed: <span class="ms-1 mono">${t.code}</span>` : "Click to reveal"}
+                  </span>
+                  <span class="small-muted fw-semibold">${t.sector}</span>
+                </div>
+              </div>
 
-        const coachBlock = document.createElement("div");
-        coachBlock.className = "coachBlock";
-
-        const coachName = document.createElement("div");
-        coachName.className = "coachName";
-        coachName.textContent = t.coach;
-
-        const coachMeta = document.createElement("div");
-        coachMeta.className = "coachMeta";
-
-        const pill = document.createElement("span");
-        pill.className = "pill";
-        pill.innerHTML = isFlipped
-          ? `Revealed: <span style="color:rgba(234,240,255,.92)">${t.ticker}</span>`
-          : `<span class="cta">Click to reveal</span>`;
-
-        coachMeta.appendChild(pill);
-
-        coachBlock.appendChild(coachName);
-        coachBlock.appendChild(coachMeta);
-
-        const badge = document.createElement("div");
-        badge.className = "rightBadge";
-        badge.textContent = isFlipped ? t.ticker : initials(t.coach);
-
-        frontInner.appendChild(coachBlock);
-        frontInner.appendChild(badge);
-        front.appendChild(frontInner);
+              <div class="d-flex flex-column align-items-end gap-2">
+                <div class="pill mono">${flipped ? t.code : initials(t.coach)}</div>
+                <div class="small-muted fw-semibold">${flipped ? t.company : "Hidden"}</div>
+              </div>
+            </div>
+          </div>
+        `;
 
         // BACK
         const back = document.createElement("div");
         back.className = "face back";
 
-        const backInner = document.createElement("div");
-        backInner.className = "backInner";
+        back.innerHTML = `
+          <div class="backContent h-100">
+            <div class="p-3 p-sm-4 h-100">
+              <div class="row g-3 align-items-center h-100">
+                <div class="col-12 col-md-8">
+                  <div class="d-flex flex-wrap align-items-baseline gap-2 mb-2">
+                    <div class="h5 mb-0 fw-black" style="font-weight:900">${t.company}</div>
+                    <span class="pill mono">ASX: ${t.code}</span>
+                  </div>
+                  <p class="joke">${t.joke}</p>
+                </div>
 
-        const left = document.createElement("div");
-        left.className = "revealTitle";
-
-        const companyLine = document.createElement("div");
-        companyLine.className = "companyLine";
-
-        const companyName2 = document.createElement("div");
-        companyName2.className = "companyName";
-        companyName2.textContent = t.company;
-
-        const tickerRow = document.createElement("div");
-        tickerRow.className = "tickerRow";
-
-        const tickerBig = document.createElement("div");
-        tickerBig.className = "tickerBig";
-        tickerBig.textContent = t.ticker;
-
-        const smallMeta = document.createElement("div");
-        smallMeta.className = "smallMeta";
-        smallMeta.innerHTML = `<span>ASX: ${t.ticker}</span><span>•</span><span>${t.sector}</span>`;
-
-        tickerRow.appendChild(tickerBig);
-        tickerRow.appendChild(smallMeta);
-
-        const joke = document.createElement("p");
-        joke.className = "joke";
-        joke.innerHTML = t.joke;
-
-        companyLine.appendChild(companyName2);
-        companyLine.appendChild(tickerRow);
-
-        left.appendChild(companyLine);
-        left.appendChild(joke);
-
-        const right = document.createElement("div");
-        right.className = "logoBox";
-
-        const img = document.createElement("img");
-        img.className = "logo";
-        img.alt = `${t.company} logo`;
-        img.src = imgSrc(t);
-
-        img.onerror = () => {
-          right.innerHTML = `
-            <div class="logoFallback">
-              <div class="fbTicker">${t.ticker}</div>
-              <div class="fbCompany">${t.company}</div>
-              <div class="fbHint">Add logo at: <span style="color:rgba(234,240,255,.9)">assets/logos/${t.logoFile}</span></div>
+                <div class="col-12 col-md-4 d-flex justify-content-md-end">
+                  <img class="logoImg" src="${logoPath(t.code)}" alt="${t.company} logo"
+                       onerror="this.style.display='none'; this.insertAdjacentHTML('afterend',
+                       '<div class=&quot;glass p-3 text-center w-100&quot; style=&quot;border-radius:16px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.12)&quot;><div class=&quot;mono fw-bold&quot; style=&quot;font-size:28px&quot;>${t.code}</div><div class=&quot;small-muted fw-semibold mt-1&quot;>${t.company}</div><div class=&quot;small-muted mt-2&quot;>Missing: images/${t.code}.jpg</div></div>');">
+                </div>
+              </div>
             </div>
-          `;
-        };
+          </div>
+        `;
 
-        right.appendChild(img);
-
-        backInner.appendChild(left);
-        backInner.appendChild(right);
-        back.appendChild(backInner);
-
-        // Assemble
         flip.appendChild(front);
         flip.appendChild(back);
         btn.appendChild(flip);
         tile.appendChild(btn);
 
-        // Events: click flips and stays flipped
-        const doFlip = () => {
+        const toggle = () => {
           const s = getState();
           s[t.coach] = !s[t.coach];
           setState(s);
           render();
         };
 
-        btn.addEventListener("click", doFlip);
-        flip.addEventListener("keydown", (e) => {
-          if(e.key === "Enter" || e.key === " ") { e.preventDefault(); doFlip(); }
+        btn.addEventListener("click", toggle);
+        btn.addEventListener("keydown", (e) => {
+          if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(); }
         });
 
         stack.appendChild(tile);
       });
     }
 
-    // Controls
     resetBtn.addEventListener("click", () => {
       localStorage.removeItem(KEY);
       render();
@@ -678,14 +451,6 @@
       tiles.forEach(t => s[t.coach] = true);
       setState(s);
       render();
-    });
-
-    // Keyboard shortcut
-    document.addEventListener("keydown", (e) => {
-      if((e.key || "").toLowerCase() === "r" && !e.metaKey && !e.ctrlKey && !e.altKey){
-        localStorage.removeItem(KEY);
-        render();
-      }
     });
 
     render();
