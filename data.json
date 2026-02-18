@@ -1,11 +1,11 @@
 {
   "dateSydney": "2026-02-18",
-  "lastUpdatedSydney": "2026-02-18 13:32",
+  "lastUpdatedSydney": "2026-02-18 13:39",
   "locked": false,
   "quotes": [
     {
       "symbol": "CSL.AX",
-      "percentDay": 1.14,
+      "percentDay": 1.12,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
