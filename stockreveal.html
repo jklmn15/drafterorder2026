@@ -3,373 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Coaches — Stock Reveal</title>
+  <title>Coaches — Stock Reveal (Flip Tiles)</title>
 
-  <!-- Fonts -->
+  <!-- Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg0:#0b1220;
-      --bg1:#0f1a30;
-      --card:#0f1b33cc;
-      --card2:#101f3b;
+      --bg0:#070b14;
+      --bg1:#0b1430;
+      --cardFront: rgba(255,255,255,.06);
+      --cardBack: rgba(255,255,255,.08);
       --text:#eaf0ff;
-      --muted:#a9b7da;
-      --line:#22355f;
-      --accent:#7aa2ff;
-      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --muted:#a7b4d8;
+      --line: rgba(255,255,255,.10);
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
       --radius: 18px;
+      --accent:#7aa2ff;
     }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
     body{
       margin:0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
       background:
-        radial-gradient(1100px 700px at 15% 10%, #1b3a77 0%, rgba(27,58,119,0) 55%),
-        radial-gradient(900px 650px at 85% 25%, #2a1b77 0%, rgba(42,27,119,0) 55%),
+        radial-gradient(1000px 650px at 12% 12%, #1a3a78 0%, rgba(26,58,120,0) 55%),
+        radial-gradient(950px 650px at 90% 25%, #3a1a78 0%, rgba(58,26,120,0) 56%),
         linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 100%);
       overflow-x:hidden;
     }
 
     .wrap{
-      max-width: 1100px;
+      max-width: 920px;
       margin: 0 auto;
-      padding: 28px 18px 56px;
+      padding: 22px 14px 56px;
     }
 
     header{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
-      padding: 18px 18px 8px;
-      border: 1px solid rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.07);
       background: rgba(10,18,35,.55);
       backdrop-filter: blur(10px);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+      padding: 16px 16px 14px;
     }
-
-    .title h1{
+    h1{
       margin:0;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: .2px;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing:.2px;
     }
-    .title p{
-      margin:8px 0 0;
+    .sub{
+      margin: 8px 0 0;
       color: var(--muted);
       font-size: 13px;
       line-height: 1.35;
     }
+    .sub strong{ color: rgba(234,240,255,.92); }
 
-    .actions{
+    .row{
+      margin-top: 12px;
       display:flex;
-      align-items:center;
       gap:10px;
       flex-wrap: wrap;
-      justify-content:flex-end;
-    }
-
-    .btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 13px;
-      cursor:pointer;
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-      user-select:none;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.09); }
-    .btn:active{ transform: translateY(0px); }
-
-    .btn.primary{
-      border-color: rgba(122,162,255,.35);
-      background: rgba(122,162,255,.14);
-    }
-    .btn.primary:hover{
-      border-color: rgba(122,162,255,.55);
-      background: rgba(122,162,255,.20);
-    }
-
-    .grid{
-      margin-top: 16px;
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-    }
-    @media (max-width: 980px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    @media (max-width: 520px){ .grid{ grid-template-columns: 1fr; } }
-
-    .card{
-      position: relative;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.03) 100%);
-      box-shadow: 0 10px 40px rgba(0,0,0,.25);
-      overflow:hidden;
-      cursor:pointer;
-      min-height: 120px;
-      transition: transform .14s ease, border-color .14s ease, background .14s ease;
-    }
-    .card:hover{
-      transform: translateY(-2px);
-      border-color: rgba(255,255,255,.16);
-      background: linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.04) 100%);
-    }
-
-    .card-inner{
-      padding: 16px 16px 14px;
-      display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap: 10px;
+      justify-content: space-between;
     }
 
-    .name{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width:0;
-    }
-    .name .coach{
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing:.1px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .name .hint{
+    .leftHint{
       color: var(--muted);
       font-size: 12px;
       display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .badge{
-      width: 40px; height: 40px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      display:grid;
-      place-items:center;
-      font-weight:800;
-      color: rgba(255,255,255,.85);
-      letter-spacing:.4px;
-      flex: 0 0 auto;
-    }
-
-    .subtle-line{
-      height:1px;
-      background: linear-gradient(90deg, rgba(255,255,255,.00), rgba(255,255,255,.10), rgba(255,255,255,.00));
-    }
-
-    footer{
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 12px;
-      text-align:center;
-      opacity: .95;
-    }
-
-    /* Modal */
-    .overlay{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(6px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-      z-index: 50;
-    }
-    .overlay.show{ display:flex; }
-
-    .modal{
-      width: min(720px, 100%);
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: linear-gradient(180deg, rgba(16,31,59,.92) 0%, rgba(9,15,30,.92) 100%);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      transform: translateY(10px) scale(.98);
-      opacity: 0;
-      transition: transform .16s ease, opacity .16s ease;
-    }
-    .overlay.show .modal{
-      transform: translateY(0px) scale(1);
-      opacity: 1;
-    }
-
-    .modal-head{
-      padding: 14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
       gap:10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-    .modal-head .mh-left{
-      display:flex;
       align-items:center;
-      gap:10px;
-      min-width:0;
+      flex-wrap: wrap;
     }
-    .modal-head .mh-title{
-      display:flex;
-      flex-direction:column;
-      min-width:0;
-    }
-    .modal-head .mh-title strong{
-      font-size: 14px;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .modal-head .mh-title span{
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .xbtn{
-      width: 38px; height: 38px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      cursor:pointer;
-      font-weight: 900;
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-    }
-    .xbtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.20); }
-
-    .modal-body{
-      padding: 18px;
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 14px;
-    }
-    @media (max-width: 720px){
-      .modal-body{ grid-template-columns: 1fr; }
-    }
-
-    .reveal{
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      padding: 16px;
-      position: relative;
-      overflow:hidden;
-    }
-    .reveal::before{
-      content:"";
-      position:absolute;
-      inset:-40px;
-      background: radial-gradient(400px 200px at 20% 10%, rgba(122,162,255,.20), rgba(122,162,255,0) 65%),
-                  radial-gradient(400px 240px at 90% 35%, rgba(170,122,255,.18), rgba(170,122,255,0) 60%);
-      pointer-events:none;
-      filter: blur(0px);
-    }
-
-    .big{
-      position: relative;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .big .company{
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing:.2px;
-    }
-    .big .ticker{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-    }
-    .ticker .tkr{
-      font-size: 40px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      line-height: 1;
-    }
-    .ticker .meta{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .logoBox{
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      padding: 14px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height: 170px;
-      position: relative;
-      overflow:hidden;
-    }
-    .logoBox::after{
-      content:"";
-      position:absolute;
-      inset:-80px;
-      background: radial-gradient(500px 240px at 50% 0%, rgba(255,255,255,.10), rgba(255,255,255,0) 60%);
-      pointer-events:none;
-    }
-    .logo{
-      max-width: 220px;
-      max-height: 120px;
-      width:auto;
-      height:auto;
-      filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 10px 14px;
-    }
-
-    .modal-foot{
-      padding: 14px 16px;
-      border-top: 1px solid rgba(255,255,255,.08);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
     .kbd{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       border:1px solid rgba(255,255,255,.14);
@@ -381,100 +92,425 @@
       font-size: 11px;
     }
 
+    .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.20); background: rgba(255,255,255,.09); }
+    .btn:active{ transform: translateY(0px); }
+    .btn.primary{
+      border-color: rgba(122,162,255,.35);
+      background: rgba(122,162,255,.14);
+    }
+    .btn.primary:hover{
+      border-color: rgba(122,162,255,.55);
+      background: rgba(122,162,255,.20);
+    }
+
+    /* Tiles stack full width */
+    .stack{
+      margin-top: 14px;
+      display:flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 3D flip */
+    .tile{
+      width: 100%;
+      min-height: 118px;
+      perspective: 1200px;
+    }
+    .tile button{
+      all: unset;
+      display:block;
+      width:100%;
+      cursor:pointer;
+    }
+
+    .flip{
+      position: relative;
+      width: 100%;
+      min-height: 118px;
+      transform-style: preserve-3d;
+      transition: transform .62s cubic-bezier(.2,.8,.2,1);
+      border-radius: var(--radius);
+      box-shadow: 0 14px 46px rgba(0,0,0,.35);
+      outline: none;
+    }
+    .tile.is-flipped .flip{
+      transform: rotateX(180deg);
+    }
+
+    .face{
+      position:absolute;
+      inset:0;
+      backface-visibility: hidden;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.09);
+      overflow:hidden;
+    }
+
+    /* Front */
+    .front{
+      background: linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.03) 100%);
+    }
+    .front::before{
+      content:"";
+      position:absolute;
+      inset:-60px;
+      background:
+        radial-gradient(520px 260px at 20% 10%, rgba(122,162,255,.20), rgba(122,162,255,0) 60%),
+        radial-gradient(520px 280px at 90% 40%, rgba(170,122,255,.16), rgba(170,122,255,0) 58%);
+      pointer-events:none;
+    }
+    .frontInner{
+      position: relative;
+      padding: 16px 16px 14px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 118px;
+    }
+    .coachBlock{
+      min-width:0;
+      display:flex;
+      flex-direction: column;
+      gap:8px;
+    }
+    .coachName{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .coachMeta{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .cta{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color: rgba(234,240,255,.88);
+      font-weight: 800;
+    }
+
+    .rightBadge{
+      flex: 0 0 auto;
+      width: 46px; height: 46px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      display:grid;
+      place-items:center;
+      font-weight: 900;
+      letter-spacing:.6px;
+    }
+
+    /* Back */
+    .back{
+      transform: rotateX(180deg);
+      background: linear-gradient(180deg, rgba(255,255,255,.09) 0%, rgba(255,255,255,.04) 100%);
+    }
+    .back::before{
+      content:"";
+      position:absolute;
+      inset:-80px;
+      background:
+        radial-gradient(650px 340px at 50% 0%, rgba(255,255,255,.11), rgba(255,255,255,0) 60%);
+      pointer-events:none;
+    }
+    .backInner{
+      position: relative;
+      padding: 16px;
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+      min-height: 118px;
+      align-items: center;
+    }
+    @media (max-width: 680px){
+      .backInner{ grid-template-columns: 1fr; }
+    }
+
+    .revealTitle{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width:0;
+    }
+    .companyLine{
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width:0;
+    }
+    .companyName{
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .tickerRow{
+      display:flex;
+      gap:12px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+    .tickerBig{
+      font-size: 34px;
+      font-weight: 1000;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+    .smallMeta{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    .joke{
+      margin: 4px 0 0;
+      color: rgba(234,240,255,.86);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .logoBox{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      min-height: 92px;
+      overflow:hidden;
+    }
+    .logo{
+      max-width: 240px;
+      max-height: 86px;
+      width:auto;
+      height:auto;
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 10px 14px;
+    }
+    .logoFallback{
+      width:100%;
+      text-align:center;
+      padding: 16px 10px;
+      border-radius: 16px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(0,0,0,.08);
+    }
+    .logoFallback .fbTicker{
+      font-weight: 1000;
+      font-size: 30px;
+      letter-spacing: 1px;
+    }
+    .logoFallback .fbCompany{
+      margin-top: 6px;
+      color: rgba(255,255,255,.78);
+      font-weight: 800;
+      font-size: 13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .logoFallback .fbHint{
+      margin-top: 8px;
+      color: rgba(169,183,218,.95);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .footer{
+      margin-top: 14px;
+      text-align:center;
+      color: var(--muted);
+      font-size: 12px;
+      opacity: .95;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .flip{ transition:none; }
+    }
+
     .sr{ position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="title">
-        <h1>Coaches Market Allocation</h1>
-        <p>
-          Click your name to reveal your randomly allocated ASX stock.<br/>
-          <span style="color:rgba(234,240,255,.9);font-weight:600">The Market Decides</span>
-        </p>
-      </div>
-      <div class="actions">
-        <button class="btn" id="resetBtn" title="Clears saved reveals on this device">Reset reveals</button>
-        <button class="btn primary" id="revealAllBtn" title="Reveals everyone (saved locally)">Reveal all</button>
+      <h1>Coaches Market Allocation</h1>
+      <p class="sub">
+        Tap your name to flip your tile and reveal your randomly allocated ASX stock.<br/>
+        <strong>The Market Decides</strong>
+      </p>
+
+      <div class="row">
+        <div class="leftHint">
+          <span>Tiles stay revealed on this device.</span>
+          <span>Tip: press <span class="kbd">R</span> to reset.</span>
+        </div>
+        <div class="actions">
+          <button class="btn" id="resetBtn" title="Clears saved reveals on this device">Reset reveals</button>
+          <button class="btn primary" id="revealAllBtn" title="Reveals everyone (saved locally)">Reveal all</button>
+        </div>
       </div>
     </header>
 
-    <div class="grid" id="grid"></div>
+    <main class="stack" id="stack" aria-label="Coach reveal tiles"></main>
 
-    <footer>
-      Saved on this device only • No trades • Pure vibes
-    </footer>
-  </div>
-
-  <!-- Modal -->
-  <div class="overlay" id="overlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-head">
-        <div class="mh-left">
-          <div class="badge" id="modalBadge">?</div>
-          <div class="mh-title">
-            <strong id="modalTitle">Reveal</strong>
-            <span id="modalSubtitle">Allocation</span>
-          </div>
-        </div>
-        <button class="xbtn" id="closeBtn" aria-label="Close">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="reveal">
-          <div class="big">
-            <div class="company" id="companyName">Company</div>
-            <div class="ticker">
-              <div class="tkr" id="ticker">TICK</div>
-              <div class="meta">
-                <div><span style="opacity:.85">ASX:</span> <span id="asx">TICK</span></div>
-                <div id="sector">Sector</div>
-              </div>
-            </div>
-            <div class="pill" id="tagline">—</div>
-          </div>
-        </div>
-
-        <div class="logoBox">
-          <img class="logo" id="logo" alt="Company logo" />
-        </div>
-      </div>
-
-      <div class="modal-foot">
-        <div>Tip: press <span class="kbd">Esc</span> to close.</div>
-        <div id="savedHint">Revealed ✓</div>
-      </div>
-    </div>
+    <div class="footer">Saved locally • No trades • Pure vibes</div>
   </div>
 
   <script>
-    // --- Data ---
-    const coaches = [
-      { coach:"Tom",      company:"NAB",          ticker:"NAB", sector:"Banking", tagline:"The Reliable Operator", domain:"nab.com.au" },
-      { coach:"Ryan",     company:"Rio Tinto",    ticker:"RIO", sector:"Mining",  tagline:"Global Resources Power", domain:"riotinto.com" },
-      { coach:"Darrell",  company:"Westpac",      ticker:"WBC", sector:"Banking", tagline:"The Red Giant", domain:"westpac.com.au" },
-      { coach:"Jeremy",   company:"CSL",          ticker:"CSL", sector:"Biotech / Healthcare", tagline:"Science Wins", domain:"csl.com" },
-      { coach:"James",    company:"Macquarie",    ticker:"MQG", sector:"Investment Banking", tagline:"The Deal Maker", domain:"macquarie.com" },
-      { coach:"Damian",   company:"Wesfarmers",   ticker:"WES", sector:"Retail / Industrial", tagline:"Diversified Powerhouse", domain:"wesfarmers.com.au" },
-      { coach:"Chris H",  company:"CommBank",     ticker:"CBA", sector:"Banking", tagline:"The Market Heavyweight", domain:"commbank.com.au" },
-      { coach:"Callum",   company:"BHP",          ticker:"BHP", sector:"Mining",  tagline:"The Global Giant", domain:"bhp.com" }
+    /**
+     * LOGOS (important):
+     * - The most reliable approach is to save logo image files in your repo and reference them here.
+     *   Example structure:
+     *     /assets/logos/NAB.png
+     *     /assets/logos/RIO.png
+     *     ...
+     *
+     * - If you DO save them, set `logoMode` to "local" (default) and make sure the filenames match.
+     * - If you want to try remote logos, set logoMode to "clearbit" (may fail due to blockers/CSP).
+     */
+    const logoMode = "local"; // "local" or "clearbit"
+    const localLogoPath = (file) => `assets/logos/${file}`; // you can change folder
+    const clearbitLogo = (domain) => `https://logo.clearbit.com/${domain}?size=256&format=png`;
+
+    // --- Data in the exact order you requested ---
+    const tiles = [
+      {
+        coach: "Jeremy",
+        company: "CSL",
+        ticker: "CSL",
+        sector: "Biotech / Healthcare",
+        domain: "csl.com",
+        logoFile: "CSL.png",
+        joke: "CSL lives in labs, pipelines, and long-term gains. If your season starts shaky, just call it “R&amp;D”—then emerge in finals like a breakthrough therapy nobody saw coming."
+      },
+      {
+        coach: "Callum",
+        company: "BHP",
+        ticker: "BHP",
+        sector: "Mining",
+        domain: "bhp.com",
+        logoFile: "BHP.png",
+        joke: "BHP digs deep and moves mountains. If injuries hit, you’ll simply open a new pit, extract value from the bench, and somehow still ship a win by bulk carrier."
+      },
+      {
+        coach: "Darrell",
+        company: "Westpac",
+        ticker: "WBC",
+        sector: "Banking",
+        domain: "westpac.com.au",
+        logoFile: "WBC.png",
+        joke: "Westpac loves a steady margin and a calm press conference. Expect conservative selections, safe captains, and a season plan so risk-managed it needs three approvals just to trade a ruck."
+      },
+      {
+        coach: "Damian",
+        company: "Wesfarmers",
+        ticker: "WES",
+        sector: "Retail / Industrial",
+        domain: "wesfarmers.com.au",
+        logoFile: "WES.png",
+        joke: "Wesfarmers owns half the aisle and still finds a new checkout lane. Your fate: diversified—when one line flops, another quietly carries you to the top four like a suspiciously effective loyalty program."
+      },
+      {
+        coach: "Chris H",
+        company: "CommBank",
+        ticker: "CBA",
+        sector: "Banking",
+        domain: "commbank.com.au",
+        logoFile: "CBA.png",
+        joke: "CommBank is the big boss of the ASX—comfortable, powerful, slightly smug. You’ll start favourites, project confidence, and if things go wrong you’ll simply raise the interest rate on your opponents’ hopes."
+      },
+      {
+        coach: "James",
+        company: "Macquarie",
+        ticker: "MQG",
+        sector: "Investment Banking",
+        domain: "macquarie.com",
+        logoFile: "MQG.png",
+        joke: "Macquarie turns spreadsheets into sorcery. Your season will feature bold, confusing trades that look illegal—until finals, when everyone realises you’ve engineered the ladder like a toll road."
+      },
+      {
+        coach: "Tom",
+        company: "NAB",
+        ticker: "NAB",
+        sector: "Banking",
+        domain: "nab.com.au",
+        logoFile: "NAB.png",
+        joke: "NAB is dependable, well-capitalised, and allergic to chaos. Translation: you’ll bank points every week, never panic, and grind out wins so steady it should come with a repayment schedule."
+      },
+      {
+        coach: "Ryan",
+        company: "Rio Tinto",
+        ticker: "RIO",
+        sector: "Mining",
+        domain: "riotinto.com",
+        logoFile: "RIO.png",
+        joke: "Rio Tinto runs global operations with ruthless efficiency. Expect you to mine undervalued rookies, export points at scale, and leave opponents staring into the abyss like they just checked commodity prices."
+      }
     ];
 
-    // Clearbit logo (simple & classy). If blocked, we’ll show fallback initials.
-    const logoUrl = (domain) => `https://logo.clearbit.com/${domain}?size=256&format=png`;
-
-    // Local storage key
-    const KEY = "coach_stock_reveals_v1";
-    const getReveals = () => {
+    // --- Persistence ---
+    const KEY = "coach_stock_flip_v2";
+    const getState = () => {
       try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; }
     };
-    const setReveals = (obj) => localStorage.setItem(KEY, JSON.stringify(obj));
+    const setState = (obj) => localStorage.setItem(KEY, JSON.stringify(obj));
 
-    // --- UI builders ---
-    const grid = document.getElementById("grid");
-    const overlay = document.getElementById("overlay");
-    const closeBtn = document.getElementById("closeBtn");
+    // --- Render ---
+    const stack = document.getElementById("stack");
     const resetBtn = document.getElementById("resetBtn");
     const revealAllBtn = document.getElementById("revealAllBtn");
 
@@ -482,182 +518,177 @@
       return (name || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
     }
 
-    function renderGrid(){
-      const reveals = getReveals();
-      grid.innerHTML = "";
+    function imgSrc(t){
+      if(logoMode === "clearbit") return clearbitLogo(t.domain);
+      return localLogoPath(t.logoFile);
+    }
 
-      coaches.forEach((c, idx) => {
-        const revealed = !!reveals[c.coach];
+    function render(){
+      const state = getState();
+      stack.innerHTML = "";
 
-        const card = document.createElement("div");
-        card.className = "card";
-        card.setAttribute("role", "button");
-        card.setAttribute("tabindex", "0");
-        card.dataset.idx = idx;
+      tiles.forEach((t, i) => {
+        const isFlipped = !!state[t.coach];
 
-        const inner = document.createElement("div");
-        inner.className = "card-inner";
+        const tile = document.createElement("section");
+        tile.className = "tile" + (isFlipped ? " is-flipped" : "");
+        tile.dataset.coach = t.coach;
 
-        const left = document.createElement("div");
-        left.className = "name";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.setAttribute("aria-label", `${t.coach} reveal tile`);
+        btn.setAttribute("aria-pressed", isFlipped ? "true" : "false");
 
-        const coachEl = document.createElement("div");
-        coachEl.className = "coach";
-        coachEl.textContent = c.coach;
+        const flip = document.createElement("div");
+        flip.className = "flip";
+        flip.tabIndex = 0;
 
-        const hint = document.createElement("div");
-        hint.className = "hint";
+        // FRONT
+        const front = document.createElement("div");
+        front.className = "face front";
+
+        const frontInner = document.createElement("div");
+        frontInner.className = "frontInner";
+
+        const coachBlock = document.createElement("div");
+        coachBlock.className = "coachBlock";
+
+        const coachName = document.createElement("div");
+        coachName.className = "coachName";
+        coachName.textContent = t.coach;
+
+        const coachMeta = document.createElement("div");
+        coachMeta.className = "coachMeta";
 
         const pill = document.createElement("span");
         pill.className = "pill";
-        pill.innerHTML = revealed
-          ? `Revealed: <span style="color:rgba(234,240,255,.92)">${c.ticker}</span>`
-          : `Click to reveal`;
+        pill.innerHTML = isFlipped
+          ? `Revealed: <span style="color:rgba(234,240,255,.92)">${t.ticker}</span>`
+          : `<span class="cta">Click to reveal</span>`;
 
-        hint.appendChild(pill);
-        left.appendChild(coachEl);
-        left.appendChild(hint);
+        coachMeta.appendChild(pill);
+
+        coachBlock.appendChild(coachName);
+        coachBlock.appendChild(coachMeta);
 
         const badge = document.createElement("div");
-        badge.className = "badge";
-        badge.textContent = revealed ? c.ticker : initials(c.coach);
+        badge.className = "rightBadge";
+        badge.textContent = isFlipped ? t.ticker : initials(t.coach);
 
-        inner.appendChild(left);
-        inner.appendChild(badge);
+        frontInner.appendChild(coachBlock);
+        frontInner.appendChild(badge);
+        front.appendChild(frontInner);
 
-        card.appendChild(inner);
+        // BACK
+        const back = document.createElement("div");
+        back.className = "face back";
 
-        // separator line for subtle depth
-        const line = document.createElement("div");
-        line.className = "subtle-line";
-        card.appendChild(line);
+        const backInner = document.createElement("div");
+        backInner.className = "backInner";
 
-        card.addEventListener("click", () => openReveal(idx));
-        card.addEventListener("keydown", (e) => {
-          if(e.key === "Enter" || e.key === " ") { e.preventDefault(); openReveal(idx); }
+        const left = document.createElement("div");
+        left.className = "revealTitle";
+
+        const companyLine = document.createElement("div");
+        companyLine.className = "companyLine";
+
+        const companyName2 = document.createElement("div");
+        companyName2.className = "companyName";
+        companyName2.textContent = t.company;
+
+        const tickerRow = document.createElement("div");
+        tickerRow.className = "tickerRow";
+
+        const tickerBig = document.createElement("div");
+        tickerBig.className = "tickerBig";
+        tickerBig.textContent = t.ticker;
+
+        const smallMeta = document.createElement("div");
+        smallMeta.className = "smallMeta";
+        smallMeta.innerHTML = `<span>ASX: ${t.ticker}</span><span>•</span><span>${t.sector}</span>`;
+
+        tickerRow.appendChild(tickerBig);
+        tickerRow.appendChild(smallMeta);
+
+        const joke = document.createElement("p");
+        joke.className = "joke";
+        joke.innerHTML = t.joke;
+
+        companyLine.appendChild(companyName2);
+        companyLine.appendChild(tickerRow);
+
+        left.appendChild(companyLine);
+        left.appendChild(joke);
+
+        const right = document.createElement("div");
+        right.className = "logoBox";
+
+        const img = document.createElement("img");
+        img.className = "logo";
+        img.alt = `${t.company} logo`;
+        img.src = imgSrc(t);
+
+        img.onerror = () => {
+          right.innerHTML = `
+            <div class="logoFallback">
+              <div class="fbTicker">${t.ticker}</div>
+              <div class="fbCompany">${t.company}</div>
+              <div class="fbHint">Add logo at: <span style="color:rgba(234,240,255,.9)">assets/logos/${t.logoFile}</span></div>
+            </div>
+          `;
+        };
+
+        right.appendChild(img);
+
+        backInner.appendChild(left);
+        backInner.appendChild(right);
+        back.appendChild(backInner);
+
+        // Assemble
+        flip.appendChild(front);
+        flip.appendChild(back);
+        btn.appendChild(flip);
+        tile.appendChild(btn);
+
+        // Events: click flips and stays flipped
+        const doFlip = () => {
+          const s = getState();
+          s[t.coach] = !s[t.coach];
+          setState(s);
+          render();
+        };
+
+        btn.addEventListener("click", doFlip);
+        flip.addEventListener("keydown", (e) => {
+          if(e.key === "Enter" || e.key === " ") { e.preventDefault(); doFlip(); }
         });
 
-        grid.appendChild(card);
+        stack.appendChild(tile);
       });
     }
 
-    // --- Modal logic ---
-    const modalBadge = document.getElementById("modalBadge");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalSubtitle = document.getElementById("modalSubtitle");
-    const companyName = document.getElementById("companyName");
-    const ticker = document.getElementById("ticker");
-    const asx = document.getElementById("asx");
-    const sector = document.getElementById("sector");
-    const tagline = document.getElementById("tagline");
-    const logo = document.getElementById("logo");
-    const savedHint = document.getElementById("savedHint");
-
-    let lastFocus = null;
-
-    function openReveal(idx){
-      const c = coaches[idx];
-      const reveals = getReveals();
-      reveals[c.coach] = true;
-      setReveals(reveals);
-      renderGrid();
-
-      modalBadge.textContent = c.ticker;
-      modalTitle.textContent = c.coach;
-      modalSubtitle.textContent = "Allocation revealed";
-      companyName.textContent = c.company;
-      ticker.textContent = c.ticker;
-      asx.textContent = c.ticker;
-      sector.textContent = c.sector;
-      tagline.textContent = c.tagline;
-
-      // Logo loading with graceful fallback
-      logo.style.display = "block";
-      logo.src = logoUrl(c.domain);
-      logo.onerror = () => {
-        // fallback: hide image and show a text badge
-        logo.style.display = "none";
-        const box = logo.closest(".logoBox");
-        box.innerHTML = `
-          <div style="
-            width:100%;
-            text-align:center;
-            padding:26px 10px;
-            border-radius:16px;
-            border:1px dashed rgba(255,255,255,.18);
-            background: rgba(0,0,0,.10);
-            ">
-            <div style="font-weight:900;font-size:34px;letter-spacing:1px">${c.ticker}</div>
-            <div style="margin-top:6px;color:rgba(255,255,255,.78);font-weight:700">${c.company}</div>
-            <div style="margin-top:8px;color:rgba(169,183,218,.95);font-size:12px">Logo unavailable</div>
-          </div>`;
-      };
-      // If previously errored, restore logoBox content
-      logo.closest(".logoBox").innerHTML = `<img class="logo" id="logo" alt="Company logo" />`;
-      // re-bind logo element
-      const newLogo = document.getElementById("logo");
-      newLogo.className = "logo";
-      newLogo.alt = "Company logo";
-      // swap reference
-      window._logoRef = newLogo;
-
-      // load again safely
-      window._logoRef.style.display = "block";
-      window._logoRef.src = logoUrl(c.domain);
-      window._logoRef.onerror = () => {
-        window._logoRef.style.display = "none";
-        const box = window._logoRef.closest(".logoBox");
-        box.innerHTML = `
-          <div style="
-            width:100%;
-            text-align:center;
-            padding:26px 10px;
-            border-radius:16px;
-            border:1px dashed rgba(255,255,255,.18);
-            background: rgba(0,0,0,.10);
-            ">
-            <div style="font-weight:900;font-size:34px;letter-spacing:1px">${c.ticker}</div>
-            <div style="margin-top:6px;color:rgba(255,255,255,.78);font-weight:700">${c.company}</div>
-            <div style="margin-top:8px;color:rgba(169,183,218,.95);font-size:12px">Logo unavailable</div>
-          </div>`;
-      };
-
-      savedHint.textContent = "Revealed ✓ (saved locally)";
-
-      lastFocus = document.activeElement;
-      overlay.classList.add("show");
-      overlay.setAttribute("aria-hidden","false");
-      closeBtn.focus();
-    }
-
-    function closeModal(){
-      overlay.classList.remove("show");
-      overlay.setAttribute("aria-hidden","true");
-      if(lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
-    }
-
-    overlay.addEventListener("click", (e) => {
-      if(e.target === overlay) closeModal();
-    });
-    closeBtn.addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => {
-      if(e.key === "Escape" && overlay.classList.contains("show")) closeModal();
-    });
-
+    // Controls
     resetBtn.addEventListener("click", () => {
       localStorage.removeItem(KEY);
-      renderGrid();
+      render();
     });
 
     revealAllBtn.addEventListener("click", () => {
-      const reveals = {};
-      coaches.forEach(c => reveals[c.coach] = true);
-      setReveals(reveals);
-      renderGrid();
+      const s = {};
+      tiles.forEach(t => s[t.coach] = true);
+      setState(s);
+      render();
     });
 
-    // Init
-    renderGrid();
+    // Keyboard shortcut
+    document.addEventListener("keydown", (e) => {
+      if((e.key || "").toLowerCase() === "r" && !e.metaKey && !e.ctrlKey && !e.altKey){
+        localStorage.removeItem(KEY);
+        render();
+      }
+    });
+
+    render();
   </script>
 </body>
 </html>
