@@ -177,6 +177,44 @@
     }
 
     canvas { user-select: none; }
+
+    @media (max-width: 576px){
+  .hero-badge{
+    width: 100%;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .4rem .6rem;
+    font-size: .92rem;
+    line-height: 1.1;
+  }
+
+  .hero-badge i{
+    display: none; /* optional: removes icon clutter on mobile */
+  }
+
+  .hero-badge .badge-text{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 65%;
+  }
+
+  .hero-badge .badge-dot{
+    display: none; /* remove the dot to save space */
+  }
+
+  .hero-badge .badge-picks{
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+}
+ .hero-highlight{
+  background: linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
   </style>
 </head>
 <body>
@@ -188,15 +226,19 @@
         <div>
           <div class="hero-badge">
             <i class="bi bi-graph-up-arrow"></i>
-            ASX-powered draft allocation • Picks <span class="text-white">7–14</span>
+            <span class="badge-text">ASX-powered draft allocation</span>
+            <span class="badge-dot">•</span>
+            <span class="badge-picks">Picks <span class="text-white">7–14</span></span>
           </div>
 
+
           <h1 class="hero-title display-6">
-            🏉 AFL Draft Ladder<br class="d-none d-md-block"/>
-            <span style="background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent;">
+            🏉 AFL Draft Ladder
+            <span class="hero-highlight d-block">
               The Market Decides
             </span>
           </h1>
+
 
           <p class="hero-sub mb-0">
             8 managers. 8 ASX stocks. One trading day. Best daily % change earns the earliest remaining pick.
