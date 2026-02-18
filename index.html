@@ -133,7 +133,6 @@
       display: inline-flex;
       align-items: center;
       gap: .35rem;
-      white-space: nowrap;
     }
 
     .pick-chip{
@@ -143,10 +142,6 @@
       border: 1px solid rgba(255,255,255,.10);
       background: rgba(69,212,255,.10);
       color: rgba(255,255,255,.92);
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .final-banner{
@@ -179,15 +174,6 @@
       background: rgba(255,255,255,.08);
       border: 1px solid rgba(255,255,255,.10);
       object-fit: contain;
-      flex: 0 0 auto;
-    }
-
-    /* Mobile tidy */
-    @media (max-width: 576px){
-      .chart-wrap{ height: 320px; }
-      .pick-chip{ padding: .18rem .45rem; font-size: .78rem; }
-      .rank-chip{ padding: .18rem .45rem; font-size: .78rem; }
-      .mini{ font-size: .86rem; }
     }
 
     canvas { user-select: none; }
@@ -217,7 +203,6 @@
           </p>
         </div>
 
-        <!-- STATUS CARD -->
         <div class="glass p-3" style="min-width: 280px;">
           <div class="d-flex justify-content-between align-items-center">
             <div class="status-pill" id="marketPill">
@@ -226,12 +211,13 @@
             </div>
           </div>
 
+          <!-- ✅ Keep only countdown + last updated -->
           <div class="divider"></div>
 
           <div class="mini">
-            <i class="bi bi-stopwatch"></i>
-            <span class="fw-bold text-white" id="countdownLabel">TIME TO CLOSE:</span>
-            <span id="countdown" class="fw-bold">—</span>
+            <i class="bi bi-hourglass-split"></i>
+            <span class="fw-bold text-white">Countdown:</span>
+            <span id="countdown">—</span>
           </div>
 
           <div class="divider"></div>
@@ -326,10 +312,10 @@
       </div>
     </div>
 
-    <!-- TradingView Widgets (fixed nesting) -->
     <div class="glass p-3 p-md-4 mt-4">
       <div class="fw-bold mb-2">Live ASX Watchlist</div>
 
+      <!-- TradingView Widget BEGIN -->
       <div class="tradingview-widget-container">
         <div class="tradingview-widget-container__widget"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
@@ -361,57 +347,58 @@
         }
         </script>
       </div>
-    </div>
+      <!-- TradingView Widget END -->
 
-    <div class="glass p-3 p-md-4 mt-4">
-      <div class="fw-bold mb-2">Live Performance Charts</div>
+      <div class="glass p-3 p-md-4 mt-4">
+        <div class="fw-bold mb-2">Live Performance Charts</div>
 
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-        {
-          "symbols": [
-            ["ASX:CBA|1D"],
-            ["ASX:BHP|1D"],
-            ["ASX:WBC|1D"],
-            ["ASX:WES|1D"],
-            ["ASX:CSL|1D"],
-            ["ASX:RIO|1D"],
-            ["ASX:MQG|1D"],
-            ["ASX:NAB|1D"]
-          ],
-          "chartOnly": false,
-          "width": "100%",
-          "height": "500",
-          "locale": "en",
-          "colorTheme": "dark",
-          "autosize": true,
-          "showVolume": false,
-          "showMA": false,
-          "hideDateRanges": false,
-          "hideMarketStatus": false,
-          "hideSymbolLogo": false,
-          "scalePosition": "right",
-          "scaleMode": "Normal",
-          "fontFamily": "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Ubuntu, sans-serif",
-          "fontSize": "10",
-          "noTimeScale": false,
-          "valuesTracking": "1",
-          "changeMode": "price-and-percent",
-          "chartType": "area",
-          "maLineColor": "#2962FF",
-          "maLineWidth": 1,
-          "maLength": 9,
-          "headerFontSize": "medium",
-          "lineWidth": 2,
-          "lineType": 0
-        }
-        </script>
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+          {
+            "symbols": [
+              ["ASX:CBA|1D"],
+              ["ASX:BHP|1D"],
+              ["ASX:WBC|1D"],
+              ["ASX:WES|1D"],
+              ["ASX:CSL|1D"],
+              ["ASX:RIO|1D"],
+              ["ASX:MQG|1D"],
+              ["ASX:NAB|1D"]
+            ],
+            "chartOnly": false,
+            "width": "100%",
+            "height": "500",
+            "locale": "en",
+            "colorTheme": "dark",
+            "autosize": true,
+            "showVolume": false,
+            "showMA": false,
+            "hideDateRanges": false,
+            "hideMarketStatus": false,
+            "hideSymbolLogo": false,
+            "scalePosition": "right",
+            "scaleMode": "Normal",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Ubuntu, sans-serif",
+            "fontSize": "10",
+            "noTimeScale": false,
+            "valuesTracking": "1",
+            "changeMode": "price-and-percent",
+            "chartType": "area",
+            "maLineColor": "#2962FF",
+            "maLineWidth": 1,
+            "maLength": 9,
+            "headerFontSize": "medium",
+            "lineWidth": 2,
+            "lineType": 0
+          }
+          </script>
+        </div>
       </div>
     </div>
 
     <div class="text-center mt-4 foot">
-      ASX hours: 10:00–16:00 Sydney • Picks assigned 7–14
+      ASX hours: 10:00–16:00 Sydney • Updates every 10 minutes • Picks assigned 7–14
     </div>
   </div>
 
@@ -419,23 +406,24 @@
 
   <script>
     // ====== CONFIG ======
-    const REFRESH_MS = 10 * 60 * 1000; // fetch data.json every 10 minutes
+    const REFRESH_MS = 10 * 60 * 1000; // 10 minutes
 
-    // IMPORTANT: Fix your mapping (your pasted version had CSL/CommBank logos swapped)
+    // Mapping lives here: managers + companies + tickers + logos
     const stocks = [
-      { manager: "Jeremy",  company: "CommBank",   ticker: "CBA.AX", logo: "https://logo.clearbit.com/commbank.com.au" },
-      { manager: "Callum",  company: "BHP",        ticker: "BHP.AX", logo: "https://logo.clearbit.com/bhp.com" },
+      { manager: "Jeremy", company: "CSL",         ticker: "CSL.AX", logo: "https://logo.clearbit.com/commbank.com.au" },
+      { manager: "Callum", company: "BHP",         ticker: "BHP.AX", logo: "https://logo.clearbit.com/bhp.com" },
       { manager: "Darrell", company: "Westpac",    ticker: "WBC.AX", logo: "https://logo.clearbit.com/westpac.com.au" },
-      { manager: "Damian",  company: "Wesfarmers", ticker: "WES.AX", logo: "https://logo.clearbit.com/wesfarmers.com.au" },
-      { manager: "Chris H", company: "CSL",        ticker: "CSL.AX", logo: "https://logo.clearbit.com/csl.com" },
-      { manager: "Ryan",    company: "Rio Tinto",  ticker: "RIO.AX", logo: "https://logo.clearbit.com/riotinto.com" },
-      { manager: "James",   company: "Macquarie",  ticker: "MQG.AX", logo: "https://logo.clearbit.com/macquarie.com" },
-      { manager: "Tom",     company: "NAB",        ticker: "NAB.AX", logo: "https://logo.clearbit.com/nab.com.au" }
+      { manager: "Damian", company: "Wesfarmers",  ticker: "WES.AX", logo: "https://logo.clearbit.com/wesfarmers.com.au" },
+      { manager: "Chris H", company: "CommBank",   ticker: "CBA.AX", logo: "https://logo.clearbit.com/csl.com" },
+      { manager: "Ryan", company: "Rio Tinto",     ticker: "RIO.AX", logo: "https://logo.clearbit.com/riotinto.com" },
+      { manager: "James", company: "Macquarie",    ticker: "MQG.AX", logo: "https://logo.clearbit.com/macquarie.com" },
+      { manager: "Tom", company: "NAB",            ticker: "NAB.AX", logo: "https://logo.clearbit.com/nab.com.au" }
     ];
 
     // ====== STATE ======
     let chart = null;
     let locked = false;
+    let uiTimer = null;
 
     // ====== HELPERS ======
     function showError(msg){
@@ -495,55 +483,39 @@
       document.getElementById("lastUpdated").textContent = textSydney || "—";
     }
 
-    // Broadcast-style countdown (HH:MM:SS)
+    // ✅ Keep ONLY this countdown logic
     function updateCountdownToOpenClose(){
-      const labelEl = document.getElementById("countdownLabel");
       const el = document.getElementById("countdown");
-
       if (locked){
-        labelEl.textContent = "LOCKED:";
-        el.textContent = "FINAL";
+        el.textContent = "Locked";
         return;
       }
 
       const syd = getSydneyNow();
-      const nowMins = syd.getHours() * 60 + syd.getMinutes();
-      const nowSecs = syd.getSeconds();
+      const mins = syd.getHours() * 60 + syd.getMinutes();
 
-      const OPEN_MINS = 10 * 60;  // 10:00
-      const CLOSE_MINS = 16 * 60; // 16:00
-      const LOCK_MINS = 16 * 60 + 5; // 16:05
+      const OPEN = 600;   // 10:00
+      const CLOSE = 960;  // 16:00
 
-      let targetMins = null;
+      let target = null;
       let label = "";
 
-      if (nowMins < OPEN_MINS){
-        targetMins = OPEN_MINS;
-        label = "TIME TO OPEN:";
-      } else if (nowMins < CLOSE_MINS){
-        targetMins = CLOSE_MINS;
-        label = "TIME TO CLOSE:";
-      } else if (nowMins < LOCK_MINS){
-        targetMins = LOCK_MINS;
-        label = "TIME TO LOCK:";
+      if (mins < OPEN) {
+        target = OPEN;
+        label = "to open";
+      } else if (mins < CLOSE) {
+        target = CLOSE;
+        label = "to close";
       } else {
-        labelEl.textContent = "MARKET:";
-        el.textContent = "CLOSED";
+        el.textContent = "Market closed";
         return;
       }
 
-      labelEl.textContent = label;
+      const diff = target - mins;
+      const hh = Math.floor(diff / 60);
+      const mm = diff % 60;
 
-      const targetTotalSecs = targetMins * 60;
-      const nowTotalSecs = nowMins * 60 + nowSecs;
-      let diff = Math.max(0, targetTotalSecs - nowTotalSecs);
-
-      const hh = Math.floor(diff / 3600);
-      diff %= 3600;
-      const mm = Math.floor(diff / 60);
-      const ss = diff % 60;
-
-      el.textContent = `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+      el.textContent = `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")} ${label}`;
     }
 
     // ====== DATA ======
@@ -585,15 +557,13 @@
 
         row.innerHTML = `
           <td><span class="rank-chip">#${i + 1}</span></td>
-          <td><span class="pick-chip"><span class="d-none d-sm-inline">Pick </span>P${pick}</span></td>
+          <td><span class="pick-chip">Pick ${pick}</span></td>
           <td>
             <div class="d-flex align-items-center gap-2">
               <img class="logo" src="${r.logo}" alt="${r.company}" onerror="this.style.display='none'">
               <div class="lh-sm">
                 <div class="fw-semibold">${r.manager}</div>
-                <div class="mini text-truncate" style="max-width: 240px; margin-top:-2px;">
-                  ${r.company} • ${r.ticker.replace('.AX','')}
-                </div>
+                <div class="mini" style="margin-top:-2px;">${r.company} • ${r.ticker.replace('.AX','')}</div>
               </div>
             </div>
           </td>
@@ -602,14 +572,25 @@
         tbody.appendChild(row);
       });
 
-      // ===== CHART =====
+      // ===== CHART (stable, no plugins) =====
       const isMobile = window.matchMedia("(max-width: 576px)").matches;
-
       const labels = results.map((r, i) => {
         const code = r.ticker.replace(".AX","");
         const pick = 7 + i;
-        if (isMobile) return [`P${pick}`, r.manager, code];
-        return [`Pick ${pick}`, r.manager, code];
+
+        if (isMobile) {
+          return [
+            `P${pick}`,
+            r.manager,
+            code
+          ];
+        }
+
+        return [
+          `Pick ${pick}`,
+          r.manager,
+          code
+        ];
       });
 
       const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
@@ -627,8 +608,7 @@
               color: "rgba(255,255,255,.80)",
               maxRotation: 0,
               minRotation: 0,
-              autoSkip: true,
-              maxTicksLimit: isMobile ? 8 : 12
+              autoSkip: false
             }
           },
           y: {
@@ -658,7 +638,6 @@
         chart.data.labels = labels;
         chart.data.datasets[0].data = values;
         chart.data.datasets[0].backgroundColor = colors;
-        chart.options = options;
         chart.update();
       }
     }
@@ -671,8 +650,10 @@
         locked = !!data.locked;
         updateMarketUI();
 
+        // Map symbol -> percentDay
         const percentMap = new Map((data.quotes || []).map(q => [q.symbol, q.percentDay]));
 
+        // Build results with company + logo info
         const results = stocks.map(s => ({
           manager: s.manager,
           company: s.company,
@@ -686,10 +667,13 @@
         render(results, locked);
         setLastUpdated(data.lastUpdatedSydney ? `${data.lastUpdatedSydney} (Sydney)` : "—");
         clearError();
+
+        updateCountdownToOpenClose();
       } catch(e){
         console.error(e);
         showError("Couldn’t load the latest data file yet. If you just added the Action, run it once manually from the Actions tab.");
         updateMarketUI();
+        updateCountdownToOpenClose();
       }
     }
 
@@ -699,9 +683,11 @@
     update();
     setInterval(update, REFRESH_MS);
 
-    // broadcast countdown tick
-    updateCountdownToOpenClose();
-    setInterval(updateCountdownToOpenClose, 250); // smooth + accurate without being heavy
+    // ✅ And keep this timer
+    clearInterval(uiTimer);
+    uiTimer = setInterval(() => {
+      updateCountdownToOpenClose();
+    }, 1000);
   </script>
 
 </body>
