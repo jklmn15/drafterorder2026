@@ -1,46 +1,649 @@
-<div class="glass p-3 p-md-4 mt-4">
-  <div class="fw-bold mb-2">Live Performance Charts</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AFL Draft — Market Allocation</title>
 
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg0:#050816;
+      --bg1:#060b1f;
+      --card:#0b1330cc;
+      --stroke:rgba(255,255,255,.08);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65);
+      --accent:#45d4ff;
+      --accent2:#7c4dff;
+      --good:#2cff9a;
+      --bad:#ff4d5a;
+      --gold:#FFD700;
+      --silver:#C0C0C0;
+      --bronze:#CD7F32;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(124,77,255,.25), transparent 55%),
+        radial-gradient(900px 500px at 85% 10%, rgba(69,212,255,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass{
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+    }
+
+    .hero{
+      position: relative;
+      padding: 28px 0 8px;
+    }
+
+    .hero-badge{
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .45rem .75rem;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: .2px;
+    }
+
+    .hero-title{
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      line-height: 1.05;
+      margin-top: 14px;
+      margin-bottom: 10px;
+    }
+
+    .hero-sub{
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .pulse-dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(44,255,154,.45);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(44,255,154,.45); }
+      70% { box-shadow: 0 0 0 10px rgba(44,255,154,0); }
+      100% { box-shadow: 0 0 0 0 rgba(44,255,154,0); }
+    }
+
+    .status-pill{
+      border-radius: 999px;
+      padding: .45rem .75rem;
+      font-weight: 700;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      white-space: nowrap;
+    }
+
+    .mini{ color: var(--muted); font-size: .92rem; }
+
+    .divider{
+      height: 1px;
+      background: var(--stroke);
+      margin: 12px 0;
+    }
+
+    .chart-wrap{ position: relative; height: 360px; }
+
+    .table thead th{
+      color: rgba(255,255,255,.8);
+      font-weight: 800;
+      border-bottom-color: var(--stroke) !important;
+    }
+    .table tbody td{
+      border-top-color: rgba(255,255,255,.06) !important;
+      vertical-align: middle;
+    }
+
+    .rank-chip{
+      font-weight: 800;
+      border-radius: 999px;
+      padding: .3rem .65rem;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+    }
+
+    .pick-chip{
+      font-weight: 800;
+      border-radius: 999px;
+      padding: .3rem .65rem;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(69,212,255,.10);
+      color: rgba(255,255,255,.92);
+    }
+
+    .final-banner{
+      display:none;
+      border: 1px solid rgba(255,77,90,.25);
+      background: linear-gradient(90deg, rgba(255,77,90,.15), rgba(255,77,90,.05));
+      padding: .75rem 1rem;
+      border-radius: 16px;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
+
+    .skeleton{
+      background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.11), rgba(255,255,255,.06));
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 12px;
+    }
+    @keyframes shimmer{
+      0%{ background-position: 200% 0; }
+      100%{ background-position: -200% 0; }
+    }
+
+    .foot{ color: var(--muted); font-size: .92rem; }
+
+    .logo{
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      object-fit: contain;
+    }
+
+    canvas { user-select: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container py-4">
+    <!-- HERO -->
+    <div class="hero">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+          <div class="hero-badge">
+            <i class="bi bi-graph-up-arrow"></i>
+            ASX-powered draft allocation • Picks <span class="text-white">7–14</span>
+          </div>
+
+          <h1 class="hero-title display-6">
+            🏉 AFL Draft Ladder<br class="d-none d-md-block"/>
+            <span style="background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent;">
+              The Market Decides
+            </span>
+          </h1>
+
+          <p class="hero-sub mb-0">
+            8 managers. 8 ASX stocks. One trading day. Best daily % change earns the earliest remaining pick.
+          </p>
+        </div>
+
+        <div class="glass p-3" style="min-width: 280px;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="status-pill" id="marketPill">
+              <span class="pulse-dot" id="pulseDot" style="background: var(--good);"></span>
+              <span id="marketText">Checking market…</span>
+            </div>
+            <span class="badge rounded-pill text-bg-dark border" style="border-color: var(--stroke) !important;">
+              <i class="bi bi-arrow-repeat"></i> 10m
+            </span>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="d-flex justify-content-between">
+            <div class="mini">
+              <div class="fw-bold text-white">Next update</div>
+              <div id="nextUpdate">—</div>
+            </div>
+            <div class="mini text-end">
+              <div class="fw-bold text-white">Countdown</div>
+              <div id="countdown">—</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="mini">
+            <i class="bi bi-clock-history"></i>
+            <span class="fw-bold text-white">Last updated:</span>
+            <span id="lastUpdated">—</span>
+          </div>
+
+          <div class="mt-3 final-banner" id="finalBanner">
+            <i class="bi bi-lock-fill"></i> FINAL RESULTS LOCKED
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="row g-3 mt-1">
+      <!-- Chart -->
+      <div class="col-12 col-lg-7">
+        <div class="glass p-3 p-md-4">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div>
+              <div class="fw-bold">Live draft allocation</div>
+              <div class="mini">Sorted by % change (day). Top performer gets <span class="text-white fw-bold">Pick 7</span>.</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge rounded-pill" style="background:rgba(255,215,0,.15); border:1px solid rgba(255,215,0,.2);">
+                <i class="bi bi-trophy-fill"></i> Pick 7 highlighted
+              </span>
+              <button class="btn btn-sm btn-outline-light" id="forceRefreshBtn">
+                <i class="bi bi-arrow-clockwise"></i> Refresh now
+              </button>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="chart"></canvas>
+          </div>
+
+          <div class="mini mt-3">
+            Data source: Google Sheets (published CSV). This is for fun, not trading.
+          </div>
+        </div>
+      </div>
+
+      <!-- Ladder Table -->
+      <div class="col-12 col-lg-5">
+        <div class="glass p-3 p-md-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="fw-bold">Draft ladder</div>
+              <div class="mini">Final daily % locks at market close (16:05 Sydney).</div>
+            </div>
+            <span class="badge rounded-pill text-bg-dark border" style="border-color: var(--stroke) !important;">
+              <i class="bi bi-shield-check"></i> Commissioner approved
+            </span>
+          </div>
+
+          <div id="errorBox" class="alert alert-danger d-none mt-3 mb-0" role="alert"></div>
+
+          <div id="tableLoading" class="mt-3">
+            <div class="skeleton mb-2" style="height: 42px;"></div>
+            <div class="skeleton mb-2" style="height: 42px;"></div>
+            <div class="skeleton mb-2" style="height: 42px;"></div>
+            <div class="skeleton mb-2" style="height: 42px;"></div>
+            <div class="skeleton mb-2" style="height: 42px;"></div>
+          </div>
+
+          <div class="table-responsive" id="tableWrap" style="display:none;">
+            <table class="table table-dark table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th style="width: 88px;">Rank</th>
+                  <th style="width: 96px;">Pick</th>
+                  <th>Coach + Stock</th>
+                  <th class="text-end">% Day</th>
+                </tr>
+              </thead>
+              <tbody id="ladderBody"></tbody>
+            </table>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="d-flex justify-content-between foot">
+            <div><i class="bi bi-geo-alt"></i> Sydney time</div>
+            <div><i class="bi bi-calendar2-week"></i> Resets next trading day</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass p-3 p-md-4 mt-4">
+  <div class="fw-bold mb-2">Live ASX Watchlist</div>
+
+  <!-- TradingView Widget BEGIN -->
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
-    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
     {
-      "symbols": [
-        ["ASX:CBA|1D"],
-        ["ASX:BHP|1D"],
-        ["ASX:WBC|1D"],
-        ["ASX:WES|1D"],
-        ["ASX:CSL|1D"],
-        ["ASX:RIO|1D"],
-        ["ASX:MQG|1D"],
-        ["ASX:NAB|1D"]
-      ],
-      "chartOnly": false,
-      "width": "100%",
-      "height": "500",
-      "locale": "en",
       "colorTheme": "dark",
-      "autosize": true,
-      "showVolume": false,
-      "showMA": false,
-      "hideDateRanges": false,
-      "hideMarketStatus": false,
-      "hideSymbolLogo": false,
-      "scalePosition": "right",
-      "scaleMode": "Normal",
-      "fontFamily": "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Ubuntu, sans-serif",
-      "fontSize": "10",
-      "noTimeScale": false,
-      "valuesTracking": "1",
-      "changeMode": "price-and-percent",
-      "chartType": "area",
-      "maLineColor": "#2962FF",
-      "maLineWidth": 1,
-      "maLength": 9,
-      "headerFontSize": "medium",
-      "lineWidth": 2,
-      "lineType": 0
+      "dateRange": "1D",
+      "showChart": false,
+      "locale": "en",
+      "largeChartUrl": "",
+      "isTransparent": true,
+      "showSymbolLogo": true,
+      "width": "100%",
+      "height": "400",
+      "tabs": [
+        {
+          "title": "ASX Draft Stocks",
+          "symbols": [
+            { "s": "ASX:CBA", "d": "Commonwealth Bank" },
+            { "s": "ASX:BHP", "d": "BHP" },
+            { "s": "ASX:WBC", "d": "Westpac" },
+            { "s": "ASX:WES", "d": "Wesfarmers" },
+            { "s": "ASX:CSL", "d": "CSL" },
+            { "s": "ASX:RIO", "d": "Rio Tinto" },
+            { "s": "ASX:MQG", "d": "Macquarie" },
+            { "s": "ASX:NAB", "d": "NAB" }
+          ]
+        }
+      ]
     }
     </script>
   </div>
+  <!-- TradingView Widget END -->
 </div>
+
+
+    <div class="text-center mt-4 foot">
+      ASX hours: 10:00–16:00 Sydney • Updates every 10 minutes • Picks assigned 7–14
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // ====== CONFIG ======
+    const REFRESH_MS = 10 * 60 * 1000; // 10 minutes
+
+    // Mapping lives here: managers + companies + tickers + logos
+    const stocks = [
+      { manager: "Jeremy", company: "CommBank", ticker: "CBA.AX", logo: "https://logo.clearbit.com/commbank.com.au" },
+      { manager: "Callum", company: "BHP",               ticker: "BHP.AX", logo: "https://logo.clearbit.com/bhp.com" },
+      { manager: "Darrell", company: "Westpac",          ticker: "WBC.AX", logo: "https://logo.clearbit.com/westpac.com.au" },
+      { manager: "Damian", company: "Wesfarmers",        ticker: "WES.AX", logo: "https://logo.clearbit.com/wesfarmers.com.au" },
+      { manager: "Chris",  company: "CSL",               ticker: "CSL.AX", logo: "https://logo.clearbit.com/csl.com" },
+      { manager: "Ryan",   company: "Rio Tinto",         ticker: "RIO.AX", logo: "https://logo.clearbit.com/riotinto.com" },
+      { manager: "James",  company: "Macquarie",         ticker: "MQG.AX", logo: "https://logo.clearbit.com/macquarie.com" },
+      { manager: "Tom",    company: "NAB",               ticker: "NAB.AX", logo: "https://logo.clearbit.com/nab.com.au" }
+    ];
+
+    // ====== STATE ======
+    let chart = null;
+    let locked = false;
+    let nextUpdateAt = Date.now() + REFRESH_MS;
+    let uiTimer = null;
+
+    // ====== HELPERS ======
+    function showError(msg){
+      const box = document.getElementById("errorBox");
+      box.classList.remove("d-none");
+      box.textContent = msg;
+    }
+    function clearError(){
+      const box = document.getElementById("errorBox");
+      box.classList.add("d-none");
+      box.textContent = "";
+    }
+
+    function getSydneyNow(){
+      const now = new Date();
+      return new Date(now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }));
+    }
+
+    function updateMarketUI(){
+      const pill = document.getElementById("marketPill");
+      const dot  = document.getElementById("pulseDot");
+      const txt  = document.getElementById("marketText");
+      const banner = document.getElementById("finalBanner");
+
+      if (locked){
+        txt.textContent = "Market closed • Locked";
+        dot.style.background = "var(--bad)";
+        dot.style.animation = "none";
+        pill.style.background = "rgba(255,77,90,.10)";
+        pill.style.borderColor = "rgba(255,77,90,.25)";
+        banner.style.display = "block";
+        return;
+      }
+
+      banner.style.display = "none";
+
+      const syd = getSydneyNow();
+      const mins = syd.getHours() * 60 + syd.getMinutes();
+      const open = mins >= 600 && mins < 960; // 10:00-16:00
+
+      if (open){
+        txt.textContent = "Market OPEN";
+        dot.style.background = "var(--good)";
+        dot.style.animation = "";
+        pill.style.background = "rgba(44,255,154,.08)";
+        pill.style.borderColor = "rgba(44,255,154,.20)";
+      } else {
+        txt.textContent = "Market CLOSED";
+        dot.style.background = "var(--bad)";
+        dot.style.animation = "none";
+        pill.style.background = "rgba(255,77,90,.08)";
+        pill.style.borderColor = "rgba(255,77,90,.20)";
+      }
+    }
+
+    function setLastUpdated(textSydney){
+      document.getElementById("lastUpdated").textContent = textSydney || "—";
+    }
+
+    function updateNextUpdateText(){
+      const el = document.getElementById("nextUpdate");
+      const diff = Math.max(0, nextUpdateAt - Date.now());
+      const mm = Math.floor(diff / 60000);
+      const ss = Math.floor((diff % 60000) / 1000);
+      el.textContent = `${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+    }
+
+    function updateCountdownToOpenClose(){
+      const el = document.getElementById("countdown");
+      if (locked){
+        el.textContent = "Locked";
+        return;
+      }
+
+      const syd = getSydneyNow();
+      const mins = syd.getHours() * 60 + syd.getMinutes();
+
+      const OPEN = 600;   // 10:00
+      const CLOSE = 960;  // 16:00
+
+      let target = null;
+      let label = "";
+
+      if (mins < OPEN) { target = OPEN; label = "to open"; }
+      else if (mins < CLOSE) { target = CLOSE; label = "to close"; }
+      else { target = null; label = "closed"; }
+
+      if (target === null){
+        el.textContent = "Closed";
+        return;
+      }
+
+      const diff = Math.max(0, target - mins);
+      const hh = Math.floor(diff / 60);
+      const mm = diff % 60;
+      el.textContent = `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")} ${label}`;
+    }
+
+    // ====== DATA ======
+    async function fetchDataJson(){
+      const res = await fetch("./data.json?ts=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) throw new Error("Could not load data.json");
+      return await res.json();
+    }
+
+    // ====== RENDER ======
+    function colorForIndex(i, v){
+      if (i === 0) return "#FFD700";
+      if (i === 1) return "#C0C0C0";
+      if (i === 2) return "#CD7F32";
+      return v >= 0 ? "#2cff9a" : "#ff4d5a";
+    }
+
+    function render(results, isFinal){
+      // show table
+      document.getElementById("tableLoading").style.display = "none";
+      document.getElementById("tableWrap").style.display = "block";
+
+      // table rows
+      const tbody = document.getElementById("ladderBody");
+      tbody.innerHTML = "";
+
+      results.forEach((r, i) => {
+        const pick = 7 + i;
+        const pct = Number.isFinite(r.percent) ? r.percent : null;
+
+        const row = document.createElement("tr");
+        if (isFinal) row.classList.add("table-active");
+
+        const pctBadge = (pct === null)
+          ? `<span class="badge rounded-pill text-bg-secondary">N/A</span>`
+          : `<span class="badge rounded-pill" style="background:${pct>=0?'rgba(44,255,154,.12)':'rgba(255,77,90,.12)'}; border:1px solid ${pct>=0?'rgba(44,255,154,.25)':'rgba(255,77,90,.25)'};">
+               ${pct.toFixed(2)}%
+             </span>`;
+
+        row.innerHTML = `
+          <td><span class="rank-chip">#${i + 1}</span></td>
+          <td><span class="pick-chip">Pick ${pick}</span></td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img class="logo" src="${r.logo}" alt="${r.company}" onerror="this.style.display='none'">
+              <div class="lh-sm">
+                <div class="fw-semibold">${r.manager}</div>
+                <div class="mini" style="margin-top:-2px;">${r.company} • ${r.ticker.replace('.AX','')}</div>
+              </div>
+            </div>
+          </td>
+          <td class="text-end">${pctBadge}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      // ===== CHART (stable, no plugins) =====
+      // Put manager names back + include ticker as extra line
+      const labels = results.map((r, i) => ([
+        `Pick ${7+i}`,
+        r.manager,
+        r.company,
+        r.ticker.replace(".AX","")
+      ]));
+
+      const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
+      const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
+
+      const ctx = document.getElementById("chart").getContext("2d");
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: "rgba(255,255,255,.80)",
+              maxRotation: 0,
+              minRotation: 0,
+              autoSkip: false
+            }
+          },
+          y: {
+            grid: { color: "rgba(255,255,255,.07)" },
+            ticks: {
+              color: "rgba(255,255,255,.80)",
+              callback: v => v + "%"
+            }
+          }
+        }
+      };
+
+      if (!chart){
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              data: values,
+              backgroundColor: colors,
+              borderRadius: 12
+            }]
+          },
+          options
+        });
+      } else {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = values;
+        chart.data.datasets[0].backgroundColor = colors;
+        chart.update();
+      }
+    }
+
+    // ====== MAIN UPDATE ======
+    async function update(){
+      try{
+        const data = await fetchDataJson();
+
+        locked = !!data.locked;
+        updateMarketUI();
+
+        // Map symbol -> percentDay
+        const percentMap = new Map((data.quotes || []).map(q => [q.symbol, q.percentDay]));
+
+        // Build results with company + logo info
+        const results = stocks.map(s => ({
+          manager: s.manager,
+          company: s.company,
+          ticker: s.ticker,
+          logo: s.logo,
+          percent: percentMap.get(s.ticker)
+        }));
+
+        results.sort((a,b) => (b.percent ?? -999) - (a.percent ?? -999));
+
+        render(results, locked);
+        setLastUpdated(data.lastUpdatedSydney ? `${data.lastUpdatedSydney} (Sydney)` : "—");
+        clearError();
+
+        nextUpdateAt = Date.now() + REFRESH_MS;
+        updateNextUpdateText();
+        updateCountdownToOpenClose();
+      } catch(e){
+        console.error(e);
+        showError("Couldn’t load the latest data file yet. If you just added the Action, run it once manually from the Actions tab.");
+        updateMarketUI();
+      }
+    }
+
+    document.getElementById("forceRefreshBtn").addEventListener("click", update);
+
+    // init
+    update();
+    setInterval(update, REFRESH_MS);
+
+    clearInterval(uiTimer);
+    uiTimer = setInterval(() => {
+      updateNextUpdateText();
+      updateCountdownToOpenClose();
+    }, 1000);
+  </script>
+
+</body>
+</html>
