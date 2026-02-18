@@ -590,11 +590,26 @@
       const isMobile = window.matchMedia("(max-width: 576px)").matches;
 
       // Use just ticker code on mobile, richer label on desktop
-      const labels = results.map((r, i) => {
-        const code = r.ticker.replace(".AX","");
-        if (isMobile) return code; // "BHP"
-        return [`Pick ${7+i}`, r.manager, code]; // multi-line on desktop
-      });
+      const isMobile = window.matchMedia("(max-width: 576px)").matches;
+
+const labels = results.map((r, i) => {
+  const code = r.ticker.replace(".AX","");
+  const pick = 7 + i;
+
+  if (isMobile) {
+    return [
+      `P${pick}`,     // compact pick
+      r.manager,      // manager name
+      code            // 3-letter code
+    ];
+  }
+
+  return [
+    `Pick ${pick}`,
+    r.manager,
+    code
+  ];
+});
 
 
       const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
