@@ -3,7 +3,7 @@ name: Fetch ASX Draft Data (from Google Sheet)
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"   # every 10 minutes (UTC). Sydney logic handled in script.
+    - cron: "*/5 * * * *"   # every 5 minutes (UTC). Sydney logic handled in script.
 
 permissions:
   contents: write
