@@ -47,10 +47,7 @@
       border-radius: 20px;
     }
 
-    .hero{
-      position: relative;
-      padding: 28px 0 8px;
-    }
+    .hero{ position: relative; padding: 28px 0 8px; }
 
     .hero-badge{
       display: inline-flex;
@@ -73,15 +70,10 @@
       margin-bottom: 10px;
     }
 
-    .hero-sub{
-      color: var(--muted);
-      max-width: 70ch;
-    }
+    .hero-sub{ color: var(--muted); max-width: 70ch; }
 
     .pulse-dot{
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
+      width: 10px; height: 10px; border-radius: 999px;
       display: inline-block;
       box-shadow: 0 0 0 0 rgba(44,255,154,.45);
       animation: pulse 1.8s infinite;
@@ -106,11 +98,7 @@
 
     .mini{ color: var(--muted); font-size: .92rem; }
 
-    .divider{
-      height: 1px;
-      background: var(--stroke);
-      margin: 12px 0;
-    }
+    .divider{ height: 1px; background: var(--stroke); margin: 12px 0; }
 
     .chart-wrap{ position: relative; height: 360px; }
 
@@ -118,6 +106,7 @@
       color: rgba(255,255,255,.8);
       font-weight: 800;
       border-bottom-color: var(--stroke) !important;
+      white-space: nowrap;
     }
     .table tbody td{
       border-top-color: rgba(255,255,255,.06) !important;
@@ -133,6 +122,7 @@
       display: inline-flex;
       align-items: center;
       gap: .35rem;
+      white-space: nowrap;
     }
 
     .pick-chip{
@@ -142,6 +132,11 @@
       border: 1px solid rgba(255,255,255,.10);
       background: rgba(69,212,255,.10);
       color: rgba(255,255,255,.92);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 62px;
     }
 
     .final-banner{
@@ -174,9 +169,25 @@
       background: rgba(255,255,255,.08);
       border: 1px solid rgba(255,255,255,.10);
       object-fit: contain;
+      flex: 0 0 auto;
     }
 
     canvas { user-select: none; }
+
+    /* Mobile clean-up */
+    @media (max-width: 576px){
+      .chart-wrap{ height: 320px; }
+      .pick-chip{
+        padding: .18rem .45rem;
+        font-size: .78rem;
+        min-width: 44px;
+      }
+      .rank-chip{
+        padding: .18rem .45rem;
+        font-size: .78rem;
+      }
+      .mini{ font-size: .86rem; }
+    }
   </style>
 </head>
 <body>
@@ -275,7 +286,7 @@
       <!-- Ladder Table -->
       <div class="col-12 col-lg-5">
         <div class="glass p-3 p-md-4">
-          <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
             <div>
               <div class="fw-bold">Draft ladder</div>
               <div class="mini">Final daily % locks at market close (16:05 Sydney).</div>
@@ -299,8 +310,8 @@
             <table class="table table-dark table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th style="width: 88px;">Rank</th>
-                  <th style="width: 96px;">Pick</th>
+                  <th style="width: 84px;">Rank</th>
+                  <th style="width: 86px;">Pick</th>
                   <th>Coach + Stock</th>
                   <th class="text-end">% Day</th>
                 </tr>
@@ -319,45 +330,6 @@
       </div>
     </div>
 
-    <div class="glass p-3 p-md-4 mt-4">
-  <div class="fw-bold mb-2">Live ASX Watchlist</div>
-
-  <!-- TradingView Widget BEGIN -->
-  <div class="tradingview-widget-container">
-    <div class="tradingview-widget-container__widget"></div>
-    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-    {
-      "colorTheme": "dark",
-      "dateRange": "1D",
-      "showChart": false,
-      "locale": "en",
-      "largeChartUrl": "",
-      "isTransparent": true,
-      "showSymbolLogo": true,
-      "width": "100%",
-      "height": "400",
-      "tabs": [
-        {
-          "title": "ASX Draft Stocks",
-          "symbols": [
-            { "s": "ASX:CBA", "d": "Commonwealth Bank" },
-            { "s": "ASX:BHP", "d": "BHP" },
-            { "s": "ASX:WBC", "d": "Westpac" },
-            { "s": "ASX:WES", "d": "Wesfarmers" },
-            { "s": "ASX:CSL", "d": "CSL" },
-            { "s": "ASX:RIO", "d": "Rio Tinto" },
-            { "s": "ASX:MQG", "d": "Macquarie" },
-            { "s": "ASX:NAB", "d": "NAB" }
-          ]
-        }
-      ]
-    }
-    </script>
-  </div>
-  <!-- TradingView Widget END -->
-</div>
-
-
     <div class="text-center mt-4 foot">
       ASX hours: 10:00–16:00 Sydney • Updates every 10 minutes • Picks assigned 7–14
     </div>
@@ -371,7 +343,7 @@
 
     // Mapping lives here: managers + companies + tickers + logos
     const stocks = [
-      { manager: "Jeremy", company: "CommBank", ticker: "CBA.AX", logo: "https://logo.clearbit.com/commbank.com.au" },
+      { manager: "Jeremy", company: "Commonwealth Bank", ticker: "CBA.AX", logo: "https://logo.clearbit.com/commbank.com.au" },
       { manager: "Callum", company: "BHP",               ticker: "BHP.AX", logo: "https://logo.clearbit.com/bhp.com" },
       { manager: "Darrell", company: "Westpac",          ticker: "WBC.AX", logo: "https://logo.clearbit.com/westpac.com.au" },
       { manager: "Damian", company: "Wesfarmers",        ticker: "WES.AX", logo: "https://logo.clearbit.com/wesfarmers.com.au" },
@@ -521,15 +493,20 @@
                ${pct.toFixed(2)}%
              </span>`;
 
+        // Compact pick text on mobile: P7; Desktop: Pick 7
+        const pickHtml = `<span class="d-none d-sm-inline">Pick </span>P${pick}`;
+
         row.innerHTML = `
           <td><span class="rank-chip">#${i + 1}</span></td>
-          <td><span class="pick-chip">Pick ${pick}</span></td>
+          <td><span class="pick-chip">${pickHtml}</span></td>
           <td>
             <div class="d-flex align-items-center gap-2">
               <img class="logo" src="${r.logo}" alt="${r.company}" onerror="this.style.display='none'">
               <div class="lh-sm">
                 <div class="fw-semibold">${r.manager}</div>
-                <div class="mini" style="margin-top:-2px;">${r.company} • ${r.ticker.replace('.AX','')}</div>
+                <div class="mini text-truncate" style="max-width: 220px; margin-top:-2px;">
+                  ${r.company} • ${r.ticker.replace('.AX','')}
+                </div>
               </div>
             </div>
           </td>
@@ -538,14 +515,14 @@
         tbody.appendChild(row);
       });
 
-      // ===== CHART (stable, no plugins) =====
-      // Put manager names back + include ticker as extra line
-      const labels = results.map((r, i) => ([
-        `Pick ${7+i}`,
-        r.manager,
-        r.company,
-        r.ticker.replace(".AX","")
-      ]));
+      // ===== CHART (mobile-clean labels) =====
+      const isMobile = window.matchMedia("(max-width: 576px)").matches;
+
+      const labels = results.map((r, i) => {
+        const code = r.ticker.replace(".AX","");
+        if (isMobile) return code; // BHP/CBA etc.
+        return [`Pick ${7+i}`, r.manager, code]; // desktop: readable multi-line
+      });
 
       const values = results.map(r => Number.isFinite(r.percent) ? r.percent : 0);
       const colors = results.map((r, i) => colorForIndex(i, Number.isFinite(r.percent) ? r.percent : 0));
@@ -559,10 +536,11 @@
           x: {
             grid: { display: false },
             ticks: {
-              color: "rgba(255,255,255,.80)",
+              color: "rgba(255,255,255,.82)",
               maxRotation: 0,
               minRotation: 0,
-              autoSkip: false
+              autoSkip: true,
+              maxTicksLimit: isMobile ? 8 : 12
             }
           },
           y: {
@@ -592,6 +570,7 @@
         chart.data.labels = labels;
         chart.data.datasets[0].data = values;
         chart.data.datasets[0].backgroundColor = colors;
+        chart.options = options; // ensure mobile/desktop tick settings update on resize
         chart.update();
       }
     }
@@ -643,6 +622,14 @@
       updateNextUpdateText();
       updateCountdownToOpenClose();
     }, 1000);
+
+    // Re-render chart labels cleanly if orientation changes / resize
+    window.addEventListener("resize", () => {
+      // next update will handle it, but refresh chart labels immediately if we have it
+      if (chart) {
+        try { update(); } catch {}
+      }
+    });
   </script>
 
 </body>
