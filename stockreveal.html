@@ -39,6 +39,7 @@
       border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius: var(--radius);
     }
 
@@ -85,23 +86,20 @@
     /* Flip Tiles */
     .tile{ perspective: 1400px; }
 
-    /* Increase height to comfortably show paragraph */
     .flip{
       position: relative;
       width: 100%;
       transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
       transition: transform .62s cubic-bezier(.2,.8,.2,1);
       border-radius: var(--radius);
       min-height: 210px;
+      transform: translateZ(0); /* Safari stability */
     }
     @media (max-width: 576px){
       .flip{ min-height: 280px; }
     }
 
-    /* KEY FIX:
-       We rotate the whole card 180deg, AND we also rotate the back face 180deg,
-       which results in normal readable text when revealed.
-    */
     .tile.is-flipped .flip{ transform: rotateY(180deg); }
 
     .face{
@@ -112,6 +110,10 @@
       border-radius: var(--radius);
       border: 1px solid var(--stroke);
       overflow:hidden;
+
+      /* Safari / iOS painting fixes */
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
     }
 
     .front{
@@ -125,9 +127,11 @@
         radial-gradient(650px 320px at 20% 10%, rgba(124,77,255,.20), rgba(124,77,255,0) 60%),
         radial-gradient(650px 320px at 90% 40%, rgba(69,212,255,.16), rgba(69,212,255,0) 60%);
       pointer-events:none;
+
+      /* CRITICAL: keep glow behind real content */
+      z-index: 0;
     }
 
-    /* Back face is also rotated so it reads correctly after the parent flips */
     .back{
       transform: rotateY(180deg);
       background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04));
@@ -138,6 +142,19 @@
       inset:-80px;
       background: radial-gradient(900px 380px at 50% 0%, rgba(255,255,255,.10), rgba(255,255,255,0) 60%);
       pointer-events:none;
+
+      /* CRITICAL: keep glow behind real content */
+      z-index: 0;
+    }
+
+    /* CRITICAL: pull all actual face content above the ::before glow layers */
+    .front > .face-content,
+    .back  > .face-content{
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      transform: translateZ(1px); /* helps Safari keep text/images visible */
+      -webkit-transform: translateZ(1px);
     }
 
     .tile-btn{
@@ -180,6 +197,7 @@
       padding: 10px 14px;
       border: 1px solid rgba(255,255,255,.14);
       box-shadow: 0 10px 28px rgba(0,0,0,.28);
+      display: block;
     }
 
     .joke{
@@ -190,7 +208,6 @@
     }
 
     .small-muted{ color: var(--muted); }
-
     .stack-gap{ gap: 14px; }
 
     @media (max-width: 576px){
@@ -232,7 +249,7 @@
           </h1>
 
           <p class="hero-sub mb-0">
-            Click your tile to reveal your stocky.
+            Click your tile to reveal your stock. Tiles stay flipped on this device.
           </p>
         </div>
 
@@ -318,6 +335,10 @@
       }
     ];
 
+    // Your structure is correct for:
+    // https://jklmn15.github.io/drafterorder2026/index.html
+    // and images at:
+    // https://jklmn15.github.io/drafterorder2026/images/CSL.jpg
     const logoPath = (code) => `images/${code}.jpg`;
 
     // Persistence
@@ -353,55 +374,59 @@
         const flip = document.createElement("div");
         flip.className = "flip glass";
 
-        // FRONT (only coach name + prompt)
+        // FRONT
         const front = document.createElement("div");
         front.className = "face front";
         front.innerHTML = `
-          <div class="h-100 d-flex align-items-center">
-            <div class="p-3 p-sm-4 w-100 d-flex align-items-center justify-content-between gap-3">
-              <div class="min-w-0">
-                <div class="coach-name h4 mb-2">${t.coach}</div>
-                <div class="d-flex flex-wrap gap-2 align-items-center">
-                  <span class="pill">
-                    <i class="bi bi-hand-index-thumb me-1"></i>
-                    ${flipped ? `Revealed` : `Click to reveal`}
-                  </span>
-                  <span class="small-muted fw-semibold">${t.sector}</span>
+          <div class="face-content">
+            <div class="h-100 d-flex align-items-center">
+              <div class="p-3 p-sm-4 w-100 d-flex align-items-center justify-content-between gap-3">
+                <div class="min-w-0">
+                  <div class="coach-name h4 mb-2">${t.coach}</div>
+                  <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="pill">
+                      <i class="bi bi-hand-index-thumb me-1"></i>
+                      ${flipped ? `Revealed` : `Click to reveal`}
+                    </span>
+                    <span class="small-muted fw-semibold">${t.sector}</span>
+                  </div>
                 </div>
-              </div>
 
-              <div class="d-flex flex-column align-items-end gap-2">
-                <div class="pill mono">${flipped ? t.code : initials(t.coach)}</div>
-                <div class="small-muted fw-semibold">${flipped ? t.company : "Hidden"}</div>
+                <div class="d-flex flex-column align-items-end gap-2">
+                  <div class="pill mono">${flipped ? t.code : initials(t.coach)}</div>
+                  <div class="small-muted fw-semibold">${flipped ? t.company : "Hidden"}</div>
+                </div>
               </div>
             </div>
           </div>
         `;
 
-        // BACK (what you asked for: coach name, stock code, company, paragraph)
+        // BACK
         const back = document.createElement("div");
         back.className = "face back";
         back.innerHTML = `
-          <div class="h-100">
-            <div class="p-3 p-sm-4 h-100 d-flex flex-column justify-content-center">
-              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                <div class="d-flex flex-column">
-                  <div class="coach-name h5 mb-1">${t.coach}</div>
-                  <div class="small-muted fw-semibold">${t.sector}</div>
-                </div>
-                <span class="pill mono">ASX: ${t.code}</span>
-              </div>
-
-              <div class="d-flex flex-column flex-md-row align-items-md-center gap-3">
-                <div class="flex-grow-1">
-                  <div class="fw-black" style="font-weight:900;font-size:1.05rem">${t.company}</div>
-                  <p class="joke mt-2">${t.joke}</p>
+          <div class="face-content">
+            <div class="h-100">
+              <div class="p-3 p-sm-4 h-100 d-flex flex-column justify-content-center">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                  <div class="d-flex flex-column">
+                    <div class="coach-name h5 mb-1">${t.coach}</div>
+                    <div class="small-muted fw-semibold">${t.sector}</div>
+                  </div>
+                  <span class="pill mono">ASX: ${t.code}</span>
                 </div>
 
-                <div class="d-flex justify-content-md-end">
-                  <img class="logoImg" src="${logoPath(t.code)}" alt="${t.company} logo"
-                       onerror="this.style.display='none'; this.insertAdjacentHTML('afterend',
-                       '<div class=&quot;glass p-3 text-center&quot; style=&quot;border-radius:16px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.12);min-width:220px&quot;><div class=&quot;mono fw-bold&quot; style=&quot;font-size:28px&quot;>${t.code}</div><div class=&quot;small-muted fw-semibold mt-1&quot;>${t.company}</div><div class=&quot;small-muted mt-2&quot;>Missing: images/${t.code}.jpg</div></div>');">
+                <div class="d-flex flex-column flex-md-row align-items-md-center gap-3">
+                  <div class="flex-grow-1">
+                    <div class="fw-black" style="font-weight:900;font-size:1.05rem">${t.company}</div>
+                    <p class="joke mt-2">${t.joke}</p>
+                  </div>
+
+                  <div class="d-flex justify-content-md-end">
+                    <img class="logoImg" src="${logoPath(t.code)}" alt="${t.company} logo"
+                      onerror="this.style.display='none'; this.insertAdjacentHTML('afterend',
+                      '<div class=&quot;glass p-3 text-center&quot; style=&quot;border-radius:16px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.12);min-width:220px&quot;><div class=&quot;mono fw-bold&quot; style=&quot;font-size:28px&quot;>${t.code}</div><div class=&quot;small-muted fw-semibold mt-1&quot;>${t.company}</div><div class=&quot;small-muted mt-2&quot;>Missing: images/${t.code}.jpg</div></div>');">
+                  </div>
                 </div>
               </div>
             </div>
