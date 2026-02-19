@@ -63,7 +63,7 @@ jobs:
           const minutes = minutesSinceMidnight(sydneyNow);
           
           // Lock at 16:05 Sydney
-          const LOCK_MINUTE = 16*60 + 5;
+          const LOCK_MINUTE = 18*60 + 5;
           const shouldLock = minutes >= LOCK_MINUTE;
           
           // If already locked for today with real data, skip
