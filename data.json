@@ -1,6 +1,6 @@
 {
   "dateSydney": "2026-02-20",
-  "lastUpdatedSydney": "2026-02-20 09:02",
+  "lastUpdatedSydney": "2026-02-20 09:17",
   "locked": false,
   "quotes": [
     {
@@ -12,7 +12,7 @@
     },
     {
       "symbol": "BHP.AX",
-      "percentDay": 1.8,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
@@ -33,7 +33,7 @@
     },
     {
       "symbol": "CBA.AX",
-      "percentDay": -1.06,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
