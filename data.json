@@ -1,6 +1,6 @@
 {
   "dateSydney": "2026-02-20",
-  "lastUpdatedSydney": "2026-02-20 09:17",
+  "lastUpdatedSydney": "2026-02-20 09:41",
   "locked": false,
   "quotes": [
     {
@@ -19,14 +19,14 @@
     },
     {
       "symbol": "WBC.AX",
-      "percentDay": 2.67,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "WES.AX",
-      "percentDay": -5.62,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
@@ -40,14 +40,14 @@
     },
     {
       "symbol": "RIO.AX",
-      "percentDay": 2.03,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "MQG.AX",
-      "percentDay": 1.55,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
