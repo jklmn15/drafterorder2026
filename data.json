@@ -1,6 +1,6 @@
 {
   "dateSydney": "2026-02-26",
-  "lastUpdatedSydney": "2026-02-26 11:01",
+  "lastUpdatedSydney": "2026-02-26 11:02",
   "locked": false,
   "quotes": [
     {
@@ -47,7 +47,7 @@
     },
     {
       "symbol": "MQG.AX",
-      "percentDay": 1.16,
+      "percentDay": 1.14,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
