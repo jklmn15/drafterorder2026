@@ -1,60 +1,60 @@
 {
   "dateSydney": "2026-03-04",
-  "lastUpdatedSydney": "2026-03-04 12:26",
+  "lastUpdatedSydney": "2026-03-04 12:51",
   "locked": false,
   "quotes": [
     {
       "symbol": "CSL.AX",
-      "percentDay": -0.55,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "BHP.AX",
-      "percentDay": -3.03,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "WBC.AX",
-      "percentDay": -1.17,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "WES.AX",
-      "percentDay": -1.44,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "CBA.AX",
-      "percentDay": -1.13,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "RIO.AX",
       "percentDay": -0.95,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
+      "symbol": "BHP.AX",
+      "percentDay": -3.6,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "WBC.AX",
+      "percentDay": -1.94,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "WES.AX",
+      "percentDay": -2.03,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "CBA.AX",
+      "percentDay": -1.62,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "RIO.AX",
+      "percentDay": -1.28,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
       "symbol": "MQG.AX",
-      "percentDay": -0.8,
+      "percentDay": -0.94,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "NAB.AX",
-      "percentDay": -0.7,
+      "percentDay": -1.56,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
