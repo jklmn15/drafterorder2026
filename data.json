@@ -1,6 +1,6 @@
 {
   "dateSydney": "2026-03-27",
-  "lastUpdatedSydney": "2026-03-27 09:01",
+  "lastUpdatedSydney": "2026-03-27 09:24",
   "locked": false,
   "quotes": [
     {
@@ -19,14 +19,14 @@
     },
     {
       "symbol": "WBC.AX",
-      "percentDay": 0.2,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "WES.AX",
-      "percentDay": -0.22,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
