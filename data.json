@@ -1,18 +1,18 @@
 {
   "dateSydney": "2026-03-31",
-  "lastUpdatedSydney": "2026-03-31 16:22",
+  "lastUpdatedSydney": "2026-03-31 16:30",
   "locked": false,
   "quotes": [
     {
       "symbol": "CSL.AX",
-      "percentDay": 0.48,
+      "percentDay": -0.03,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "BHP.AX",
-      "percentDay": 0,
+      "percentDay": -0.08,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
@@ -26,35 +26,35 @@
     },
     {
       "symbol": "WES.AX",
-      "percentDay": 0.08,
+      "percentDay": 0.16,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "CBA.AX",
-      "percentDay": -0.06,
+      "percentDay": 0.02,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "RIO.AX",
-      "percentDay": 0.78,
+      "percentDay": 0.4,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "MQG.AX",
-      "percentDay": 1,
+      "percentDay": 1.15,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "NAB.AX",
-      "percentDay": 0.56,
+      "percentDay": 0.58,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
