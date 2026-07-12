@@ -1,11 +1,11 @@
 {
   "dateSydney": "2026-07-13",
-  "lastUpdatedSydney": "2026-07-13 08:48",
+  "lastUpdatedSydney": "2026-07-13 09:07",
   "locked": false,
   "quotes": [
     {
       "symbol": "CSL.AX",
-      "percentDay": -2.1,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
@@ -40,7 +40,7 @@
     },
     {
       "symbol": "RIO.AX",
-      "percentDay": 3.77,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
