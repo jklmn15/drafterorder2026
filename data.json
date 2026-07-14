@@ -5,56 +5,56 @@
   "quotes": [
     {
       "symbol": "CSL.AX",
-      "percentDay": 1.31,
+      "percentDay": 0.79,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "BHP.AX",
-      "percentDay": 0.62,
+      "percentDay": 0.72,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "WBC.AX",
-      "percentDay": -1.11,
+      "percentDay": -1.02,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "WES.AX",
-      "percentDay": -0.59,
+      "percentDay": -0.48,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "CBA.AX",
-      "percentDay": -1,
+      "percentDay": -0.86,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "RIO.AX",
-      "percentDay": -0.16,
+      "percentDay": 0,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "MQG.AX",
-      "percentDay": -0.4,
+      "percentDay": -0.31,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
       "symbol": "NAB.AX",
-      "percentDay": -1.37,
+      "percentDay": -1.17,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
