@@ -1,6 +1,6 @@
 {
   "dateSydney": "2026-07-28",
-  "lastUpdatedSydney": "2026-07-28 16:41",
+  "lastUpdatedSydney": "2026-07-28 17:05",
   "locked": false,
   "quotes": [
     {
@@ -54,7 +54,7 @@
     },
     {
       "symbol": "NAB.AX",
-      "percentDay": 0.59,
+      "percentDay": 0.66,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
