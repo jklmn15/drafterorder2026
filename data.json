@@ -1,60 +1,60 @@
 {
   "dateSydney": "2026-10-08",
-  "lastUpdatedSydney": "2026-10-08 08:15",
+  "lastUpdatedSydney": "2026-10-08 11:57",
   "locked": false,
   "quotes": [
     {
       "symbol": "CSL.AX",
-      "percentDay": 1.85,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "BHP.AX",
-      "percentDay": -0.65,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "WBC.AX",
-      "percentDay": -1.21,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "WES.AX",
-      "percentDay": 0.58,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "CBA.AX",
-      "percentDay": -1.32,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "RIO.AX",
-      "percentDay": -0.61,
-      "price": null,
-      "prevClose": null,
-      "timeEpoch": null
-    },
-    {
-      "symbol": "MQG.AX",
       "percentDay": -0.5,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
     },
     {
+      "symbol": "BHP.AX",
+      "percentDay": -2.43,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "WBC.AX",
+      "percentDay": 0.7,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "WES.AX",
+      "percentDay": 0.55,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "CBA.AX",
+      "percentDay": 0.48,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "RIO.AX",
+      "percentDay": -2.86,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
+      "symbol": "MQG.AX",
+      "percentDay": 0.4,
+      "price": null,
+      "prevClose": null,
+      "timeEpoch": null
+    },
+    {
       "symbol": "NAB.AX",
-      "percentDay": -0.78,
+      "percentDay": 0.76,
       "price": null,
       "prevClose": null,
       "timeEpoch": null
